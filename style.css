@@ -12,6 +12,17 @@
   --cell-valid: #16a34a;
   --cell-invalid: #dc2626;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  /* Teclas retro estilo teclado antiguo (tema claro: beige/marfil) */
+  --plate: #c8c1ad;
+  --key-face: #ece7d6;
+  --key-hi: rgba(255, 255, 255, 0.85);
+  --key-lo: rgba(0, 0, 0, 0.10);
+  --key-edge: #b3aa92;
+  --key-legend: #33312b;
+  --key-press: #ded7c1;
+  --key-press-legend: #33312b;
+  --key-depth: 7px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +40,17 @@
     --cell-valid: #22c55e;
     --cell-invalid: #ef4444;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    /* Teclas retro (tema oscuro: grafito vintage) */
+    --plate: #1c1c1f;
+    --key-face: #35353b;
+    --key-hi: rgba(255, 255, 255, 0.12);
+    --key-lo: rgba(0, 0, 0, 0.35);
+    --key-edge: #141417;
+    --key-legend: #ecebe3;
+    --key-press: #2b2b30;
+    --key-press-legend: #ffffff;
+    --key-depth: 7px;
   }
 }
 
@@ -139,15 +161,24 @@ body {
 .cell.selected.live-valid {
   background: var(--cell-valid);
   color: #fff;
-  box-shadow: 0 0 10px var(--cell-valid);
+  transform: translateY(var(--key-depth));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2), 0 0 0 #0f7a37,
+    0 1px 3px rgba(0, 0, 0, 0.45), 0 0 14px var(--cell-valid);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: clamp(4px, 1vw, 10px);
+  gap: clamp(8px, 2.5vw, 16px);
   width: 100%;
   aspect-ratio: 1;
+  padding: clamp(8px, 2.5vw, 16px);
+  background: var(--plate);
+  border-radius: 16px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 14px rgba(0, 0, 0, 0.25);
   touch-action: none;
   user-select: none;
 }
@@ -157,31 +188,48 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--cell-bg);
-  border: 1px solid var(--cell-border);
-  border-radius: 10px;
+  background: var(--key-face);
+  border: none;
+  border-radius: 8px;
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+    "Courier New", monospace;
   font-size: clamp(1.4rem, 8vw, 2.6rem);
   font-weight: 700;
-  color: var(--text);
-  box-shadow: var(--shadow);
+  color: var(--key-legend);
+  /* Relieve de keycap: bisel superior claro, cuenco interior, faldón (pared)
+     inferior oscuro y sombra ambiental — le da volumen 3D a la tecla. */
+  box-shadow: inset 0 3px 0 var(--key-hi), inset 0 -3px 5px var(--key-lo),
+    0 var(--key-depth) 0 var(--key-edge),
+    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
   cursor: pointer;
-  transition: background 0.08s ease, color 0.08s ease, transform 0.08s ease;
+  transform: translateY(0);
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.08s ease,
+    color 0.08s ease;
 }
 
+/* Presionada: la tecla baja el alto del faldón y este colapsa (recorrido físico) */
 .cell.selected {
-  background: var(--cell-selected);
-  color: var(--cell-selected-text);
-  transform: scale(0.96);
+  background: var(--key-press);
+  color: var(--key-press-legend);
+  transform: translateY(var(--key-depth));
+  box-shadow: inset 0 2px 0 var(--key-hi), inset 0 -1px 2px var(--key-lo),
+    0 0 0 var(--key-edge), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .cell.valid {
   background: var(--cell-valid);
   color: #fff;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 var(--key-depth) 0 #0f7a37,
+    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
 }
 
 .cell.invalid {
   background: var(--cell-invalid);
   color: #fff;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 var(--key-depth) 0 #9c1c1c,
+    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
 }
 
 .cell.disabled {
