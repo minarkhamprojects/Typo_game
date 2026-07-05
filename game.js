@@ -1,12 +1,14 @@
 (function () {
   const testSeconds = Number(new URLSearchParams(window.location.search).get("t"));
-  const GAME_SECONDS = testSeconds > 0 ? testSeconds : 180;
+  const GAME_SECONDS = testSeconds > 0 ? testSeconds : 90;
+  const WARN_SECONDS = 10;
 
   const gridEl = document.getElementById("grid");
   const gridWrapEl = document.getElementById("grid-wrap");
   const overlayEl = document.getElementById("path-overlay");
   const pathLineEl = document.getElementById("path-line");
   const muteBtn = document.getElementById("mute-btn");
+  const rotateBtn = document.getElementById("rotate-btn");
   const hapticSwitch = document.getElementById("haptic-switch");
   const timerEl = document.getElementById("timer");
   const scoreEl = document.getElementById("score");
@@ -90,6 +92,10 @@
   function playFail() {
     tone(160, 0, 0.16, "sawtooth", 0.16);
     tone(120, 0.1, 0.2, "sawtooth", 0.14);
+  }
+
+  function playWarnTick() {
+    tone(880, 0, 0.06, "square", 0.14);
   }
 
   function updateMuteBtn() {
@@ -193,6 +199,10 @@
     scoreEl.textContent = String(totalScore());
     wordCountEl.textContent = String(foundWords.size);
     timerEl.textContent = formatTime(timeLeft);
+    timerEl.classList.toggle(
+      "warning",
+      state === "playing" && timeLeft <= WARN_SECONDS
+    );
   }
 
   // Fracción del semilado de la celda (desde el centro) que cuenta como acierto.
@@ -339,7 +349,30 @@
     updateStats();
     if (timeLeft <= 0) {
       endGame();
+      return;
     }
+    if (timeLeft <= WARN_SECONDS) {
+      playWarnTick();
+      vibrate(15);
+    }
+  }
+
+  // Gira la matriz del tablero 90° horario. Las adyacencias se conservan, así
+  // que las palabras posibles (solved) son las mismas; solo cambia la vista.
+  function rotateBoard() {
+    if (dragging || !grid.length) return;
+    const n = grid.length;
+    const rotated = Array.from({ length: n }, () => new Array(n));
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        rotated[c][n - 1 - r] = grid[r][c];
+      }
+    }
+    grid = rotated;
+    path = [];
+    renderGrid();
+    renderPath();
+    playKeyClick();
   }
 
   function startGame() {
@@ -371,8 +404,15 @@
       .slice(0, 15);
 
     finalScoreEl.textContent = String(totalScore());
-    const longest = [...foundWords.keys()].sort((a, b) => b.length - a.length)[0] || "—";
-    finalDetailsEl.textContent = `${foundWords.size} palabras encontradas · más larga: ${longest}`;
+    const words = [...foundWords.keys()];
+    let details = `${foundWords.size} palabras encontradas`;
+    if (words.length) {
+      const maxLen = Math.max(...words.map((w) => w.length));
+      const longest = words.filter((w) => w.length === maxLen);
+      const label = longest.length > 1 ? "más largas" : "más larga";
+      details += ` · ${label} (${maxLen} letras): ${longest.join(", ")}`;
+    }
+    finalDetailsEl.textContent = details;
 
     missedListEl.innerHTML = "";
     missed.forEach(([word, pts]) => {
@@ -426,6 +466,7 @@
     localStorage.setItem("typo-muted", muted ? "1" : "0");
     updateMuteBtn();
   });
+  rotateBtn.addEventListener("click", rotateBoard);
 
   updateMuteBtn();
   newBoard();

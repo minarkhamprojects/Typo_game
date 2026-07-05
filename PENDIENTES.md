@@ -52,3 +52,8 @@
 - [x] Palabra repetida: destello ámbar en las teclas y resaltado del chip en la lista
 - [x] Haptic iOS best-effort: toggle de un switch nativo oculto (iOS 17.4+); si Apple
       exige toggle manual queda como no-op — haptic pleno solo con app nativa
+- [x] Partida de 1:30 (antes 3:00)
+- [x] Aviso en los últimos 10 segundos: reloj rojo pulsante + tick sonoro + vibración
+- [x] Botón 🔄 para girar el tablero 90° (misma partida, otra perspectiva)
+- [x] Resumen final: la(s) palabra(s) más larga(s) con su número de letras, mostrando
+      empates en vez de elegir una arbitraria

@@ -116,6 +116,24 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Últimos 10 segundos: el reloj se pone rojo y pulsa */
+.stat-value.warning {
+  color: var(--cell-invalid);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-value.warning {
+    animation: none;
+  }
+}
+
 .board-area {
   display: flex;
   flex-direction: column;

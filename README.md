@@ -6,7 +6,7 @@
 
 ## Qué es
 
-Typo genera un tablero de 4×4 letras (con la frecuencia real del español) y te da 3 minutos
+Typo genera un tablero de 4×4 letras (con la frecuencia real del español) y te da 1:30
 para encontrar tantas palabras válidas como puedas conectando letras adyacentes. Cada
 tablero se valida al generarse para garantizar que tenga suficientes palabras posibles, y
 al terminar la partida te muestra las mejores palabras que se te escaparon.
@@ -52,7 +52,7 @@ cd typo_game
 open index.html   # o doble clic / arrastrar al navegador
 ```
 
-1. Pulsa **Comenzar** para arrancar el temporizador de 3 minutos.
+1. Pulsa **Comenzar** para arrancar el temporizador de 1:30.
 2. Arrastra el mouse (o el dedo) sobre letras adyacentes — incluidas diagonales — para
    formar una palabra de al menos 3 letras.
 3. Suelta para confirmar la palabra. Si es válida y no la habías encontrado antes, suma
