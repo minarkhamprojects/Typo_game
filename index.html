@@ -28,7 +28,10 @@
 
     <main class="board-area">
       <div class="current-word" id="current-word">&nbsp;</div>
-      <div class="grid" id="grid" aria-label="Tablero de letras"></div>
+      <div class="grid-wrap">
+        <div class="grid" id="grid" aria-label="Tablero de letras"></div>
+        <svg id="path-overlay" aria-hidden="true"><polyline id="path-line" points="" /></svg>
+      </div>
       <div class="controls">
         <button id="start-btn" class="btn btn-primary">Comenzar</button>
         <button id="new-board-btn" class="btn">Nuevo tablero</button>

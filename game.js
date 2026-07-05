@@ -3,6 +3,8 @@
   const GAME_SECONDS = testSeconds > 0 ? testSeconds : 180;
 
   const gridEl = document.getElementById("grid");
+  const overlayEl = document.getElementById("path-overlay");
+  const pathLineEl = document.getElementById("path-line");
   const timerEl = document.getElementById("timer");
   const scoreEl = document.getElementById("score");
   const wordCountEl = document.getElementById("word-count");
@@ -29,6 +31,10 @@
   let timeLeft = GAME_SECONDS;
   let timerHandle = null;
 
+  function vibrate(pattern) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+
   function formatTime(seconds) {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -54,8 +60,14 @@
   }
 
   function renderPath() {
+    const currentWord = path.length ? TypoEngine.wordFromPath(grid, path) : "";
+    const liveValid =
+      currentWord.length >= TypoEngine.MIN_WORD_LEN &&
+      dictionary.has(currentWord) &&
+      !foundWords.has(currentWord);
+
     gridEl.querySelectorAll(".cell").forEach((el) => {
-      el.classList.remove("selected");
+      el.classList.remove("selected", "live-valid");
       const badge = el.querySelector(".order-badge");
       if (badge) badge.remove();
     });
@@ -63,14 +75,30 @@
       const el = cellAt(r, c);
       if (!el) return;
       el.classList.add("selected");
+      if (liveValid) el.classList.add("live-valid");
       const badge = document.createElement("span");
       badge.className = "order-badge";
       badge.textContent = String(i + 1);
       el.appendChild(badge);
     });
+    renderLine(liveValid);
     currentWordEl.textContent = path.length
       ? TypoEngine.wordFromPath(grid, path)
       : " ";
+  }
+
+  function renderLine(liveValid) {
+    overlayEl.setAttribute("viewBox", `0 0 ${gridEl.offsetWidth} ${gridEl.offsetHeight}`);
+    const points = path
+      .map(([r, c]) => {
+        const el = cellAt(r, c);
+        if (!el) return null;
+        return `${el.offsetLeft + el.offsetWidth / 2},${el.offsetTop + el.offsetHeight / 2}`;
+      })
+      .filter(Boolean)
+      .join(" ");
+    pathLineEl.setAttribute("points", points);
+    overlayEl.classList.toggle("live-valid", Boolean(liveValid));
   }
 
   function flashResult(cells, className) {
@@ -130,6 +158,7 @@
   function extendPathTo(r, c) {
     if (!path.length) {
       path.push([r, c]);
+      vibrate(10);
       renderPath();
       return;
     }
@@ -148,6 +177,7 @@
     if (pathHas(r, c)) return;
     if (!isAdjacent(last, [r, c])) return;
     path.push([r, c]);
+    vibrate(10);
     renderPath();
   }
 
@@ -159,6 +189,7 @@
       if (validWord && !alreadyFound) {
         const pts = TypoEngine.scoreForLength(word.length);
         foundWords.set(word, pts);
+        vibrate([30, 40, 60]);
         flashResult(path, "valid");
         renderFoundList();
         updateStats();
@@ -176,6 +207,7 @@
     if (!pos) return;
     dragging = true;
     path = [pos];
+    vibrate(10);
     renderPath();
     e.preventDefault();
   }

@@ -12,8 +12,6 @@
 ## Backlog
 
 - [ ] Guardar mejores puntajes localmente (localStorage) para ver récord personal
-- [ ] Animación/línea que conecte visualmente las celdas seleccionadas (hoy solo se
-      resaltan con color + número de orden)
 - [ ] Soporte para deshacer con tecla Escape además de arrastrar hacia atrás
 - [ ] Modo sin temporizador (libre)
 
@@ -36,3 +34,7 @@
 - [x] Modo claro/oscuro
 - [x] Probado en navegador (Playwright): palabra válida, duplicado rechazado, arrastre
       inválido no rompe la app, fin de partida y reinicio
+- [x] Línea que conecta las celdas seleccionadas, con iluminación en vivo (verde) cuando
+      lo conectado ya es una palabra válida no encontrada
+- [x] Haptic feedback (`navigator.vibrate`): tick por letra conectada y patrón al lograr
+      palabra — Android/Chrome; iOS Safari no soporta la API

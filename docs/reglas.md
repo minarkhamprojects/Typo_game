@@ -13,6 +13,11 @@
 - Largo mínimo: 3 letras.
 - La palabra debe existir en el diccionario embebido (`words_es.js`).
 - No se puede repetir una palabra ya encontrada en la misma partida.
+- Mientras arrastras, una línea conecta las letras seleccionadas; cuando lo conectado ya
+  forma una palabra válida que no has encontrado, la línea y las celdas se iluminan en
+  verde — puedes soltar para confirmarla.
+- En dispositivos con soporte de vibración (Android/Chrome), hay un tick suave por cada
+  letra conectada y una vibración más marcada al lograr una palabra.
 
 ## Puntaje
 

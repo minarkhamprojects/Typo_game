@@ -107,11 +107,46 @@ body {
   color: var(--accent);
 }
 
+.grid-wrap {
+  position: relative;
+  width: min(90vw, 420px);
+}
+
+#path-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+#path-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-opacity: 0.5;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#path-overlay.live-valid #path-line {
+  stroke: var(--cell-valid);
+  stroke-opacity: 0.65;
+  filter: drop-shadow(0 0 6px var(--cell-valid));
+}
+
+.cell.selected.live-valid {
+  background: var(--cell-valid);
+  color: #fff;
+  box-shadow: 0 0 10px var(--cell-valid);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(4px, 1vw, 10px);
-  width: min(90vw, 420px);
+  width: 100%;
   aspect-ratio: 1;
   touch-action: none;
   user-select: none;
