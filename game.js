@@ -245,7 +245,7 @@
     startBtn.disabled = true;
     newBoardBtn.disabled = true;
     setTimeout(() => {
-      const result = TypoEngine.generatePlayableGrid(trie, { minWords: 60 });
+      const result = TypoEngine.generatePlayableGrid(trie, { minWords: 60, maxAttempts: 20 });
       grid = result.grid;
       solved = result.solved;
       state = "idle";

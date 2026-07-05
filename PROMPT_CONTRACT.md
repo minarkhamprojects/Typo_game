@@ -8,7 +8,7 @@
 ## GOAL
 
 Un buscapalabras estilo Boggle jugable en el navegador (`index.html`, sin build ni
-backend): tablero de 9×9 letras en español generado con frecuencias reales, partida de 3
+backend): tablero de 4×4 letras en español generado con frecuencias reales, partida de 3
 minutos donde el jugador forma palabras arrastrando sobre letras adyacentes, con puntaje
 por longitud de palabra y un resumen final que incluye las mejores palabras que se le
 escaparon. Terminado significa: se puede abrir `index.html` en un navegador, jugar una

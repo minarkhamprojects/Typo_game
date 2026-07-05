@@ -2,7 +2,7 @@
 
 ## Tablero
 
-- 9×9 letras (81 celdas), generadas al azar según la frecuencia de letras del español.
+- 4×4 letras (16 celdas), generadas al azar según la frecuencia de letras del español.
 - Al generarse, el tablero se resuelve internamente (motor de búsqueda con trie) y se
   descarta/regenera si tiene muy pocas palabras posibles, para evitar tableros "muertos".
 

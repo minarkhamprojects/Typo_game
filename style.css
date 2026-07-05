@@ -109,9 +109,9 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: clamp(2px, 0.5vw, 6px);
-  width: min(90vw, 520px);
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(4px, 1vw, 10px);
+  width: min(90vw, 420px);
   aspect-ratio: 1;
   touch-action: none;
   user-select: none;
@@ -124,8 +124,8 @@ body {
   justify-content: center;
   background: var(--cell-bg);
   border: 1px solid var(--cell-border);
-  border-radius: 6px;
-  font-size: clamp(0.7rem, 3.5vw, 1.4rem);
+  border-radius: 10px;
+  font-size: clamp(1.4rem, 8vw, 2.6rem);
   font-weight: 700;
   color: var(--text);
   box-shadow: var(--shadow);
@@ -156,9 +156,9 @@ body {
 
 .order-badge {
   position: absolute;
-  top: 2px;
-  right: 3px;
-  font-size: 0.55rem;
+  top: 4px;
+  right: 6px;
+  font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.75;
 }

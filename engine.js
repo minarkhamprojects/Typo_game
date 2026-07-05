@@ -1,7 +1,7 @@
 // Motor puro del juego: generación de grid, diccionario, trie, resolver y puntaje.
 // Sin dependencias del DOM para poder probarse en Node.
 
-const GRID_SIZE = 9;
+const GRID_SIZE = 4;
 const MIN_WORD_LEN = 3;
 
 // Frecuencia aproximada de letras en español (para generar tableros jugables)

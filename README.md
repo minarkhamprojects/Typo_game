@@ -1,12 +1,12 @@
 # Typo
 
-> Buscapalabras estilo Boggle en un tablero de 9×9, en español, contrarreloj.
+> Buscapalabras estilo Boggle en un tablero de 4×4, en español, contrarreloj.
 
 ---
 
 ## Qué es
 
-Typo genera un tablero de 81 letras (con la frecuencia real del español) y te da 3 minutos
+Typo genera un tablero de 4×4 letras (con la frecuencia real del español) y te da 3 minutos
 para encontrar tantas palabras válidas como puedas conectando letras adyacentes. Cada
 tablero se valida al generarse para garantizar que tenga suficientes palabras posibles, y
 al terminar la partida te muestra las mejores palabras que se te escaparon.
