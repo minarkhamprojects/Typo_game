@@ -13,11 +13,16 @@
 - Largo mínimo: 3 letras.
 - La palabra debe existir en el diccionario embebido (`words_es.js`).
 - No se puede repetir una palabra ya encontrada en la misma partida.
-- Mientras arrastras, una línea conecta las letras seleccionadas; cuando lo conectado ya
-  forma una palabra válida que no has encontrado, la línea y las celdas se iluminan en
-  verde — puedes soltar para confirmarla.
+- Mientras arrastras, una línea conecta las letras seleccionadas. El veredicto se da
+  **al soltar**: destello verde si la palabra es válida y nueva, ámbar si ya la habías
+  encontrado (y se resalta en tu lista), rojo si no existe.
+- El tablero se ve borroso hasta que pulsas Comenzar (y se vuelve a difuminar al acabar
+  el tiempo), para que no puedas estudiar las letras con el reloj parado.
+- Sonido retro: click de tecla por letra conectada, chime al acertar, doble nota si la
+  palabra está repetida y buzz si es inválida. Se silencia con el botón 🔊.
 - En dispositivos con soporte de vibración (Android/Chrome), hay un tick suave por cada
-  letra conectada y una vibración más marcada al lograr una palabra.
+  letra conectada y una vibración más marcada al lograr una palabra. En iPhone, iOS no
+  permite vibración desde la web; el feedback principal ahí es el sonido.
 
 ## Puntaje
 

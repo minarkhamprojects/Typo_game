@@ -44,3 +44,11 @@
 - [x] Selección menos sensible: zona muerta al centro de la celda para no seleccionar
       vecinas por rozar bordes; puente que rellena celdas saltadas en arrastres rápidos
       (arregla que no se detectaran palabras largas)
+- [x] Blur del tablero antes de comenzar y al terminar la partida (no se pueden estudiar
+      las letras con el reloj parado)
+- [x] Sonido retro sintetizado (Web Audio): click por letra, chime al acertar, doble nota
+      en repetida, buzz en inválida; botón 🔊/🔇 persistido en localStorage
+- [x] Veredicto solo al soltar (se quitó el verde en vivo durante el arrastre)
+- [x] Palabra repetida: destello ámbar en las teclas y resaltado del chip en la lista
+- [x] Haptic iOS best-effort: toggle de un switch nativo oculto (iOS 17.4+); si Apple
+      exige toggle manual queda como no-op — haptic pleno solo con app nativa

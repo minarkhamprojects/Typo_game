@@ -3,8 +3,11 @@
   const GAME_SECONDS = testSeconds > 0 ? testSeconds : 180;
 
   const gridEl = document.getElementById("grid");
+  const gridWrapEl = document.getElementById("grid-wrap");
   const overlayEl = document.getElementById("path-overlay");
   const pathLineEl = document.getElementById("path-line");
+  const muteBtn = document.getElementById("mute-btn");
+  const hapticSwitch = document.getElementById("haptic-switch");
   const timerEl = document.getElementById("timer");
   const scoreEl = document.getElementById("score");
   const wordCountEl = document.getElementById("word-count");
@@ -31,7 +34,66 @@
   let timerHandle = null;
 
   function vibrate(pattern) {
-    if (navigator.vibrate) navigator.vibrate(pattern);
+    if (navigator.vibrate) {
+      navigator.vibrate(pattern);
+    } else if (hapticSwitch) {
+      // iOS Safari no tiene navigator.vibrate; togglear un switch nativo
+      // produce un tick háptico en iOS 17.4+ (best-effort, no-op si Apple
+      // exige interacción manual).
+      hapticSwitch.checked = !hapticSwitch.checked;
+    }
+  }
+
+  // --- Sonido retro sintetizado (Web Audio, sin archivos externos) ---
+  let audioCtx = null;
+  let muted = localStorage.getItem("typo-muted") === "1";
+
+  function initAudio() {
+    if (audioCtx) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return;
+    }
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+
+  function tone(freq, startIn, duration, type, volume) {
+    if (!audioCtx || muted) return;
+    const t = audioCtx.currentTime + startIn;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + duration);
+  }
+
+  function playKeyClick() {
+    // Click mecánico corto con tono levemente variable para no sonar a metralleta
+    tone(1400 + Math.random() * 500, 0, 0.035, "square", 0.06);
+  }
+
+  function playSuccess() {
+    tone(523, 0, 0.09, "triangle", 0.22); // do
+    tone(659, 0.08, 0.09, "triangle", 0.22); // mi
+    tone(784, 0.16, 0.14, "triangle", 0.22); // sol
+  }
+
+  function playDup() {
+    tone(440, 0, 0.12, "triangle", 0.18);
+    tone(440, 0.13, 0.12, "triangle", 0.14);
+  }
+
+  function playFail() {
+    tone(160, 0, 0.16, "sawtooth", 0.16);
+    tone(120, 0.1, 0.2, "sawtooth", 0.14);
+  }
+
+  function updateMuteBtn() {
+    muteBtn.textContent = muted ? "🔇" : "🔊";
   }
 
   function formatTime(seconds) {
@@ -60,13 +122,9 @@
 
   function renderPath() {
     const currentWord = path.length ? TypoEngine.wordFromPath(grid, path) : "";
-    const liveValid =
-      currentWord.length >= TypoEngine.MIN_WORD_LEN &&
-      dictionary.has(currentWord) &&
-      !foundWords.has(currentWord);
 
     gridEl.querySelectorAll(".cell").forEach((el) => {
-      el.classList.remove("selected", "live-valid");
+      el.classList.remove("selected");
       const badge = el.querySelector(".order-badge");
       if (badge) badge.remove();
     });
@@ -74,19 +132,18 @@
       const el = cellAt(r, c);
       if (!el) return;
       el.classList.add("selected");
-      if (liveValid) el.classList.add("live-valid");
       const badge = document.createElement("span");
       badge.className = "order-badge";
       badge.textContent = String(i + 1);
       el.appendChild(badge);
     });
-    renderLine(liveValid);
+    renderLine();
     currentWordEl.textContent = path.length
       ? TypoEngine.wordFromPath(grid, path)
       : " ";
   }
 
-  function renderLine(liveValid) {
+  function renderLine() {
     overlayEl.setAttribute("viewBox", `0 0 ${gridEl.offsetWidth} ${gridEl.offsetHeight}`);
     const points = path
       .map(([r, c]) => {
@@ -97,7 +154,6 @@
       .filter(Boolean)
       .join(" ");
     pathLineEl.setAttribute("points", points);
-    overlayEl.classList.toggle("live-valid", Boolean(liveValid));
   }
 
   function flashResult(cells, className) {
@@ -117,6 +173,7 @@
     foundListEl.innerHTML = "";
     for (const [word, pts] of foundWords.entries()) {
       const li = document.createElement("li");
+      li.dataset.word = word;
       li.textContent = word;
       const span = document.createElement("span");
       span.className = "pts";
@@ -169,6 +226,7 @@
     if (!path.length) {
       path.push([r, c]);
       vibrate(10);
+      playKeyClick();
       renderPath();
       return;
     }
@@ -189,6 +247,7 @@
     if (isAdjacent(last, [r, c])) {
       path.push([r, c]);
       vibrate(10);
+      playKeyClick();
       renderPath();
       return;
     }
@@ -209,6 +268,7 @@
         path.push(mid);
         path.push([r, c]);
         vibrate(10);
+        playKeyClick();
         renderPath();
       }
     }
@@ -217,21 +277,36 @@
   function submitPath() {
     if (path.length >= TypoEngine.MIN_WORD_LEN) {
       const word = TypoEngine.wordFromPath(grid, path);
-      const alreadyFound = foundWords.has(word);
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
-      if (validWord && !alreadyFound) {
+      if (validWord && !foundWords.has(word)) {
         const pts = TypoEngine.scoreForLength(word.length);
         foundWords.set(word, pts);
         vibrate([30, 40, 60]);
+        playSuccess();
         flashResult(path, "valid");
         renderFoundList();
         updateStats();
+      } else if (validWord) {
+        // Repetida: amarillo, y resalta el chip de la palabra en la lista
+        vibrate(20);
+        playDup();
+        flashResult(path, "dup");
+        flashFoundChip(word);
       } else {
+        playFail();
         flashResult(path, "invalid");
       }
     }
     path = [];
     renderPath();
+  }
+
+  function flashFoundChip(word) {
+    const chip = foundListEl.querySelector(`li[data-word="${word}"]`);
+    if (!chip) return;
+    chip.classList.add("flash-dup");
+    chip.scrollIntoView({ block: "nearest" });
+    setTimeout(() => chip.classList.remove("flash-dup"), 1000);
   }
 
   function onPointerDown(e) {
@@ -241,6 +316,7 @@
     dragging = true;
     path = [pos];
     vibrate(10);
+    playKeyClick();
     renderPath();
     e.preventDefault();
   }
@@ -267,7 +343,9 @@
   }
 
   function startGame() {
+    initAudio();
     state = "playing";
+    gridWrapEl.classList.remove("blurred");
     timeLeft = GAME_SECONDS;
     foundWords = new Map();
     path = [];
@@ -282,6 +360,7 @@
 
   function endGame() {
     state = "ended";
+    gridWrapEl.classList.add("blurred");
     clearInterval(timerHandle);
     timerHandle = null;
     newBoardBtn.disabled = false;
@@ -314,6 +393,7 @@
       grid = result.grid;
       solved = result.solved;
       state = "idle";
+      gridWrapEl.classList.add("blurred");
       timeLeft = GAME_SECONDS;
       foundWords = new Map();
       path = [];
@@ -341,6 +421,12 @@
     summaryOverlay.hidden = true;
     newBoard();
   });
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    localStorage.setItem("typo-muted", muted ? "1" : "0");
+    updateMuteBtn();
+  });
 
+  updateMuteBtn();
   newBoard();
 })();
