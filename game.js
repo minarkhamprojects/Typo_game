@@ -19,8 +19,7 @@
   const missedListEl = document.getElementById("missed-list");
   const playAgainBtn = document.getElementById("play-again-btn");
 
-  const dictionary = TypoEngine.parseDictionary(WORDS_ES_RAW);
-  const trie = TypoEngine.buildTrie(dictionary);
+  const dictionary = TypoEngine.makeDictionary(WORDS_ES_RAW);
 
   let grid = [];
   let solved = new Map();
@@ -139,11 +138,22 @@
     timerEl.textContent = formatTime(timeLeft);
   }
 
-  function cellFromPoint(x, y) {
+  // Fracción del semilado de la celda (desde el centro) que cuenta como acierto.
+  // Al arrastrar exigimos estar cerca del centro para no seleccionar celdas
+  // vecinas por rozar sus bordes; al iniciar (strict=false) somos permisivos.
+  const HIT_RATIO = 0.6;
+
+  function cellFromPoint(x, y, strict) {
     const el = document.elementFromPoint(x, y);
     if (!el) return null;
     const cellEl = el.closest(".cell");
     if (!cellEl || !gridEl.contains(cellEl)) return null;
+    if (strict) {
+      const rect = cellEl.getBoundingClientRect();
+      const dx = Math.abs(x - (rect.left + rect.width / 2)) / (rect.width / 2);
+      const dy = Math.abs(y - (rect.top + rect.height / 2)) / (rect.height / 2);
+      if (dx > HIT_RATIO || dy > HIT_RATIO) return null;
+    }
     return [Number(cellEl.dataset.r), Number(cellEl.dataset.c)];
   }
 
@@ -175,10 +185,33 @@
     }
 
     if (pathHas(r, c)) return;
-    if (!isAdjacent(last, [r, c])) return;
-    path.push([r, c]);
-    vibrate(10);
-    renderPath();
+
+    if (isAdjacent(last, [r, c])) {
+      path.push([r, c]);
+      vibrate(10);
+      renderPath();
+      return;
+    }
+
+    // Arrastre rápido: el dedo saltó una celda intermedia. Si el salto es de
+    // como mucho 2 filas/columnas y existe una celda puente adyacente a ambas
+    // (libre y en el tablero), la insertamos para no perder la palabra.
+    const dr = r - last[0];
+    const dc = c - last[1];
+    if (Math.abs(dr) <= 2 && Math.abs(dc) <= 2) {
+      const mid = [last[0] + Math.sign(dr), last[1] + Math.sign(dc)];
+      if (
+        !pathHas(mid[0], mid[1]) &&
+        cellAt(mid[0], mid[1]) &&
+        isAdjacent(last, mid) &&
+        isAdjacent(mid, [r, c])
+      ) {
+        path.push(mid);
+        path.push([r, c]);
+        vibrate(10);
+        renderPath();
+      }
+    }
   }
 
   function submitPath() {
@@ -203,7 +236,7 @@
 
   function onPointerDown(e) {
     if (state !== "playing") return;
-    const pos = cellFromPoint(e.clientX, e.clientY);
+    const pos = cellFromPoint(e.clientX, e.clientY, false);
     if (!pos) return;
     dragging = true;
     path = [pos];
@@ -214,7 +247,7 @@
 
   function onPointerMove(e) {
     if (!dragging || state !== "playing") return;
-    const pos = cellFromPoint(e.clientX, e.clientY);
+    const pos = cellFromPoint(e.clientX, e.clientY, true);
     if (!pos) return;
     extendPathTo(pos[0], pos[1]);
   }
@@ -277,7 +310,7 @@
     startBtn.disabled = true;
     newBoardBtn.disabled = true;
     setTimeout(() => {
-      const result = TypoEngine.generatePlayableGrid(trie, { minWords: 60, maxAttempts: 20 });
+      const result = TypoEngine.generatePlayableGrid(dictionary, { minWords: 60, maxAttempts: 20 });
       grid = result.grid;
       solved = result.solved;
       state = "idle";

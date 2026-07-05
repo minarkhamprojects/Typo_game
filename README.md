@@ -16,7 +16,10 @@ al terminar la partida te muestra las mejores palabras que se te escaparon.
 ## Stack
 
 - HTML + CSS + JavaScript vanilla, sin frameworks ni build step
-- Diccionario de ~71.000 palabras en español, embebido como dato estático
+- Diccionario de ~636.000 palabras en español (incluye conjugaciones), embebido como
+  dato estático. Se valida con búsqueda binaria sobre el texto ordenado y se resuelve
+  cada tablero con un mini-trie de solo las palabras que caben en sus letras, para
+  mantener bajo el uso de memoria en móvil (~15-35 MB en vez de >100 MB)
 - Sin backend, sin dependencias — se juega abriendo `index.html` en el navegador
 
 ---
@@ -63,8 +66,10 @@ Ver reglas completas de puntaje en [`docs/reglas.md`](docs/reglas.md).
 
 ## Regenerar el diccionario
 
-El diccionario embebido en `words_es.js` se generó a partir de una lista pública de
-palabras en español, normalizada (sin tildes, en mayúsculas, solo A-Z y Ñ, largo 3-16).
+El diccionario embebido en `words_es.js` se generó a partir de la lista pública
+[`words/an-array-of-spanish-words`](https://github.com/words/an-array-of-spanish-words)
+(~636k palabras, incluye conjugaciones), normalizada (sin tildes, en mayúsculas, solo
+A-Z y Ñ, largo 3-16) y ordenada alfabéticamente.
 Para regenerarlo desde una fuente actualizada:
 
 ```bash

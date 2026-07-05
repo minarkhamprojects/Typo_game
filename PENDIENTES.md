@@ -14,6 +14,8 @@
 - [ ] Guardar mejores puntajes localmente (localStorage) para ver récord personal
 - [ ] Soporte para deshacer con tecla Escape además de arrastrar hacia atrás
 - [ ] Modo sin temporizador (libre)
+- [ ] Haptic en iPhone: `navigator.vibrate` no existe en iOS Safari; solo sería posible
+      con un envoltorio nativo (Capacitor/app). Pendiente si se quiere app nativa.
 
 ---
 
@@ -26,7 +28,8 @@
 ## Completados
 
 - [x] Setup inicial del repo (creado desde proyecto-base)
-- [x] Diccionario en español normalizado (~71.000 palabras, `scripts/build_words.py`)
+- [x] Diccionario en español normalizado (~636.000 palabras con conjugaciones); validación
+      por búsqueda binaria + mini-trie por tablero para no gastar memoria en móvil
 - [x] Motor del juego: generación de tablero jugable, trie, resolver, puntaje (`engine.js`)
 - [x] UI del tablero 4×4 con selección por arrastre (mouse y touch vía Pointer Events)
 - [x] Temporizador de 3 minutos, panel de palabras encontradas, resumen final con
@@ -38,3 +41,6 @@
       lo conectado ya es una palabra válida no encontrada
 - [x] Haptic feedback (`navigator.vibrate`): tick por letra conectada y patrón al lograr
       palabra — Android/Chrome; iOS Safari no soporta la API
+- [x] Selección menos sensible: zona muerta al centro de la celda para no seleccionar
+      vecinas por rozar bordes; puente que rellena celdas saltadas en arrastres rápidos
+      (arregla que no se detectaran palabras largas)

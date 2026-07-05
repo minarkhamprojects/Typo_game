@@ -46,13 +46,80 @@ function generateGrid(rand = Math.random, size = GRID_SIZE) {
   return grid;
 }
 
-function parseDictionary(rawText) {
-  const set = new Set();
-  for (const line of rawText.split("\n")) {
-    const w = line.trim();
-    if (w.length >= MIN_WORD_LEN) set.add(w);
+// Diccionario liviano: guarda el texto ordenado (una palabra por línea, en
+// MAYÚSCULAS) y un índice de offsets de inicio de línea. Validar es búsqueda
+// binaria O(log n); no construimos un Set ni un trie gigante en memoria.
+// Con ~636k palabras esto ocupa ~15 MB en vez de ~80-110 MB.
+function makeDictionary(rawText) {
+  const text = rawText;
+  const n = text.length;
+  const offsets = [0];
+  for (let i = 0; i < n; i++) {
+    if (text.charCodeAt(i) === 10) offsets.push(i + 1);
   }
-  return set;
+  // Descarta un posible offset vacío final (texto terminado en \n).
+  if (offsets[offsets.length - 1] >= n) offsets.pop();
+  const count = offsets.length;
+
+  function wordAt(idx) {
+    const start = offsets[idx];
+    let end = idx + 1 < count ? offsets[idx + 1] - 1 : n;
+    return text.slice(start, end);
+  }
+
+  function has(word) {
+    let lo = 0;
+    let hi = count - 1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const w = wordAt(mid);
+      if (w === word) return true;
+      if (w < word) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    return false;
+  }
+
+  // Palabras del diccionario cuyas letras caben en el multiconjunto del tablero
+  // (avail: mapa charCode -> cantidad). Recorre el texto sin trocearlo entero.
+  function subsetForBoard(avail) {
+    const out = [];
+    let start = 0;
+    while (start < n) {
+      let end = text.indexOf("\n", start);
+      if (end === -1) end = n;
+      const wlen = end - start;
+      if (wlen >= MIN_WORD_LEN) {
+        const cnt = {};
+        let ok = true;
+        for (let i = start; i < end; i++) {
+          const code = text.charCodeAt(i);
+          cnt[code] = (cnt[code] || 0) + 1;
+          if (cnt[code] > (avail[code] || 0)) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) out.push(text.slice(start, end));
+      }
+      start = end + 1;
+    }
+    return out;
+  }
+
+  return { has, subsetForBoard, count, wordAt };
+}
+
+// Cuenta las letras del tablero como mapa charCode -> cantidad.
+function boardLetterCounts(grid) {
+  const avail = {};
+  for (const row of grid) {
+    for (const ch of row) {
+      const code = ch.charCodeAt(0);
+      avail[code] = (avail[code] || 0) + 1;
+    }
+  }
+  return avail;
 }
 
 function buildTrie(wordSet) {
@@ -141,17 +208,26 @@ function solveBoard(grid, trie) {
   return found;
 }
 
+// Resuelve un tablero usando el diccionario: filtra las palabras que caben en
+// las letras del tablero, arma un mini-trie con ellas (pequeño y rápido) y hace
+// la búsqueda DFS. Devuelve un Map palabra -> puntaje.
+function solveBoardWithDict(grid, dict) {
+  const subset = dict.subsetForBoard(boardLetterCounts(grid));
+  const miniTrie = buildTrie(subset);
+  return solveBoard(grid, miniTrie);
+}
+
 // Genera un tablero jugable: reintenta si tiene muy pocas palabras posibles.
-function generatePlayableGrid(trie, opts = {}) {
+function generatePlayableGrid(dict, opts = {}) {
   const rand = opts.rand || Math.random;
   const minWords = opts.minWords ?? 60;
-  const maxAttempts = opts.maxAttempts ?? 5;
+  const maxAttempts = opts.maxAttempts ?? 20;
   let grid = generateGrid(rand);
-  let solved = solveBoard(grid, trie);
+  let solved = solveBoardWithDict(grid, dict);
   let attempts = 1;
   while (solved.size < minWords && attempts < maxAttempts) {
     grid = generateGrid(rand);
-    solved = solveBoard(grid, trie);
+    solved = solveBoardWithDict(grid, dict);
     attempts++;
   }
   return { grid, solved, attempts };
@@ -162,12 +238,14 @@ const api = {
   MIN_WORD_LEN,
   LETTER_FREQ,
   generateGrid,
-  parseDictionary,
+  makeDictionary,
+  boardLetterCounts,
   buildTrie,
   scoreForLength,
   isValidPath,
   wordFromPath,
   solveBoard,
+  solveBoardWithDict,
   generatePlayableGrid,
 };
 

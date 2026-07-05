@@ -1,7 +1,10 @@
 import re
 import unicodedata
 
-SRC = "/tmp/claude-0/-home-user-proyecto-base/30db7a79-b807-5029-8334-9e16de19621a/scratchpad/spanish_words_utf8.txt"
+# Fuente: https://github.com/words/an-array-of-spanish-words (index.json, ~636k palabras)
+# Descargar el JSON y, si es JSON, convertirlo a una palabra por línea antes de correr esto,
+# o adaptar la lectura a json.load. SRC apunta a esa lista de palabras (una por línea).
+SRC = "spanish_words_source.txt"
 OUT = "/workspace/typo_game/data/words_es.txt"
 
 MIN_LEN = 3
