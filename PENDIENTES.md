@@ -65,3 +65,6 @@
       con marca roja secundaria, tecla oscura al arrastrar, retroiluminación roja al
       acertar (pulse) y shake en inválidas; tipografías Archivo + Space Grotesk; el
       acento es una sola variable CSS (--accent)
+- [x] Marcas miniatura de las teclas en rojo fijo (#D8342E), desacopladas del acento
+- [x] Botón principal con relieve de keycap 3D rojo; cambia de función:
+      Comenzar → Terminar (corta la partida) → Jugar de nuevo

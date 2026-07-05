@@ -415,10 +415,19 @@
     renderFoundList();
     renderPath();
     updateStats();
-    startBtn.disabled = true;
     newBoardBtn.disabled = true;
+    updateStartBtn();
     hintEl.textContent = "Arrastra sobre letras adyacentes para formar palabras de al menos 3 letras.";
     timerHandle = setInterval(tick, 1000);
+  }
+
+  function updateStartBtn() {
+    startBtn.textContent =
+      state === "playing"
+        ? "Terminar"
+        : state === "ended"
+        ? "Jugar de nuevo"
+        : "Comenzar";
   }
 
   function endGame() {
@@ -427,6 +436,7 @@
     clearInterval(timerHandle);
     timerHandle = null;
     newBoardBtn.disabled = false;
+    updateStartBtn();
 
     const missed = [...solved.entries()]
       .filter(([word]) => !foundWords.has(word))
@@ -473,6 +483,7 @@
       updateStats();
       startBtn.disabled = false;
       newBoardBtn.disabled = false;
+      updateStartBtn();
       hintEl.textContent = "Arrastra sobre letras adyacentes para formar palabras de al menos 3 letras.";
     }, 10);
   }
@@ -482,7 +493,16 @@
   window.addEventListener("pointerup", onPointerUp);
   window.addEventListener("pointercancel", onPointerUp);
 
-  startBtn.addEventListener("click", startGame);
+  startBtn.addEventListener("click", () => {
+    if (state === "playing") {
+      endGame();
+    } else if (state === "ended") {
+      summaryOverlay.hidden = true;
+      newBoard();
+    } else {
+      startGame();
+    }
+  });
   newBoardBtn.addEventListener("click", () => {
     if (state === "playing") clearInterval(timerHandle);
     newBoard();
