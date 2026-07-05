@@ -1,0 +1,29 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Dependencias / entornos
+node_modules/
+.venv/
+__pycache__/
+
+# Secretos — NUNCA subir
+.env
+.env.*
+*.env
+*token*
+*secret*
+*.key
+*.pem
+# …pero SÍ versionar la plantilla de ejemplo (sin valores reales)
+!.env.example
+
+# Caché / build
+.wrangler/
+dist/
+build/
+*.log
+
+# Respaldos / temporales
+*.bak
+*.bak*
