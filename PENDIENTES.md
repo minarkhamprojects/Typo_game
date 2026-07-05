@@ -57,3 +57,11 @@
 - [x] Botón 🔄 para girar el tablero 90° (misma partida, otra perspectiva)
 - [x] Resumen final: la(s) palabra(s) más larga(s) con su número de letras, mostrando
       empates en vez de elegir una arbitraria
+- [x] Audio robusto en iOS: navigator.audioSession='playback' (suena aunque el iPhone
+      esté en silencio, iOS 16.4+), unlock con buffer silencioso y resume() automático
+      si el contexto se suspende (bloqueo de pantalla / cambio de app)
+- [x] Giro del tablero con botones ⟲/⟳ a ambos lados del tablero (antes un solo 🔄)
+- [x] Rediseño visual "8BitDo retro": escena oscura cálida, chasis crema, teclas crema
+      con marca roja secundaria, tecla oscura al arrastrar, retroiluminación roja al
+      acertar (pulse) y shake en inválidas; tipografías Archivo + Space Grotesk; el
+      acento es una sola variable CSS (--accent)

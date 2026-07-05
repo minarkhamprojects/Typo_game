@@ -8,7 +8,8 @@
   const overlayEl = document.getElementById("path-overlay");
   const pathLineEl = document.getElementById("path-line");
   const muteBtn = document.getElementById("mute-btn");
-  const rotateBtn = document.getElementById("rotate-btn");
+  const rotateLeftBtn = document.getElementById("rotate-left");
+  const rotateRightBtn = document.getElementById("rotate-right");
   const hapticSwitch = document.getElementById("haptic-switch");
   const timerEl = document.getElementById("timer");
   const scoreEl = document.getElementById("score");
@@ -51,16 +52,34 @@
   let muted = localStorage.getItem("typo-muted") === "1";
 
   function initAudio() {
+    // iOS 16.4+: que el audio suene aunque el iPhone tenga el switch de silencio
+    if (navigator.audioSession) {
+      try {
+        navigator.audioSession.type = "playback";
+      } catch (e) {
+        /* no soportado: seguimos igual */
+      }
+    }
     if (audioCtx) {
       if (audioCtx.state === "suspended") audioCtx.resume();
       return;
     }
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (Ctx) audioCtx = new Ctx();
+    if (!Ctx) return;
+    audioCtx = new Ctx();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    // Unlock clásico de iOS: reproducir un buffer silencioso dentro del gesto
+    const buffer = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(audioCtx.destination);
+    src.start(0);
   }
 
   function tone(freq, startIn, duration, type, volume) {
     if (!audioCtx || muted) return;
+    // iOS suspende el contexto al bloquear pantalla / cambiar de app
+    if (audioCtx.state === "suspended") audioCtx.resume();
     const t = audioCtx.currentTime + startIn;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -112,6 +131,9 @@
     return gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
   }
 
+  // Marcas rojas secundarias de las teclas (decorativas, estilo teclado retro)
+  const KEY_MARKS = ["!", "·", "'", "º", ";", ":", "¿", "¡", "+", "*", "-", ",", ".", "%", '"', "&"];
+
   function renderGrid() {
     gridEl.innerHTML = "";
     for (let r = 0; r < grid.length; r++) {
@@ -120,7 +142,14 @@
         cell.className = "cell";
         cell.dataset.r = r;
         cell.dataset.c = c;
-        cell.textContent = grid[r][c];
+        const legend = document.createElement("span");
+        legend.className = "key-legend";
+        legend.textContent = grid[r][c];
+        const mark = document.createElement("span");
+        mark.className = "key-mark";
+        mark.textContent = KEY_MARKS[(r * grid.length + c) % KEY_MARKS.length];
+        cell.appendChild(mark);
+        cell.appendChild(legend);
         gridEl.appendChild(cell);
       }
     }
@@ -172,7 +201,7 @@
         const el = cellAt(r, c);
         if (el) el.classList.remove(className);
       });
-    }, 350);
+    }, 480);
   }
 
   function renderFoundList() {
@@ -357,15 +386,16 @@
     }
   }
 
-  // Gira la matriz del tablero 90° horario. Las adyacencias se conservan, así
-  // que las palabras posibles (solved) son las mismas; solo cambia la vista.
-  function rotateBoard() {
+  // Gira la matriz del tablero 90° (dir=1 horario, dir=-1 antihorario). Las
+  // adyacencias se conservan: las palabras posibles (solved) son las mismas.
+  function rotateBoard(dir) {
     if (dragging || !grid.length) return;
     const n = grid.length;
     const rotated = Array.from({ length: n }, () => new Array(n));
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
-        rotated[c][n - 1 - r] = grid[r][c];
+        if (dir === 1) rotated[c][n - 1 - r] = grid[r][c];
+        else rotated[n - 1 - c][r] = grid[r][c];
       }
     }
     grid = rotated;
@@ -466,7 +496,13 @@
     localStorage.setItem("typo-muted", muted ? "1" : "0");
     updateMuteBtn();
   });
-  rotateBtn.addEventListener("click", rotateBoard);
+  rotateLeftBtn.addEventListener("click", () => rotateBoard(-1));
+  rotateRightBtn.addEventListener("click", () => rotateBoard(1));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  });
 
   updateMuteBtn();
   newBoard();

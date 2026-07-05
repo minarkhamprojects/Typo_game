@@ -1,59 +1,40 @@
+/* Typo — feeling retro 8BitDo: escena oscura cálida, chasis crema, acento rojo.
+   El acento es UNA variable: cambiarla re-tinta encendido, estela, botón y marcas. */
+
 :root {
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --text: #1c1c1e;
-  --text-muted: #6b6b70;
-  --accent: #4f46e5;
-  --accent-text: #ffffff;
-  --cell-bg: #ffffff;
-  --cell-border: #d8d8dd;
-  --cell-selected: #4f46e5;
-  --cell-selected-text: #ffffff;
-  --cell-valid: #16a34a;
-  --cell-invalid: #dc2626;
-  --cell-dup: #d97706;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --accent: #d8342e;
+  --accent-hi: color-mix(in srgb, var(--accent), #ffffff 16%);
+  --accent-lo: color-mix(in srgb, var(--accent), #000000 8%);
+  --accent-skirt: color-mix(in srgb, var(--accent), #000000 42%);
 
-  /* Teclas retro estilo teclado antiguo (tema claro: beige/marfil) */
-  --plate: #c8c1ad;
-  --key-face: #ece7d6;
-  --key-hi: rgba(255, 255, 255, 0.85);
-  --key-lo: rgba(0, 0, 0, 0.10);
-  --key-edge: #b3aa92;
-  --key-legend: #33312b;
-  --key-press: #ded7c1;
-  --key-press-legend: #33312b;
-  --key-depth: 7px;
-}
+  --text: #f0e9da;
+  --text-muted: #a89c86;
+  --surface: #241d15;
+  --surface-border: #453a2b;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121214;
-    --surface: #1c1c1f;
-    --text: #f0f0f2;
-    --text-muted: #9a9aa0;
-    --accent: #7c74f1;
-    --accent-text: #101014;
-    --cell-bg: #232327;
-    --cell-border: #35353b;
-    --cell-selected: #7c74f1;
-    --cell-selected-text: #101014;
-    --cell-valid: #22c55e;
-    --cell-invalid: #ef4444;
-    --cell-dup: #f59e0b;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  /* Chasis (placa) crema/greige */
+  --plate: linear-gradient(160deg, #d8ceb6, #c0b596 58%, #a89c7d);
+  --plate-border: #8d8265;
 
-    /* Teclas retro (tema oscuro: grafito vintage) */
-    --plate: #1c1c1f;
-    --key-face: #35353b;
-    --key-hi: rgba(255, 255, 255, 0.12);
-    --key-lo: rgba(0, 0, 0, 0.35);
-    --key-edge: #141417;
-    --key-legend: #ecebe3;
-    --key-press: #2b2b30;
-    --key-press-legend: #ffffff;
-    --key-depth: 7px;
-  }
+  /* Tecla crema (reposo) */
+  --key-face: linear-gradient(158deg, #efe9db, #ddd3bd);
+  --key-legend: #35312a;
+  --key-skirt: #aca081;
+
+  /* Tecla oscura (arrastre, tipo Ctrl/Shift) */
+  --key-drag-face: linear-gradient(158deg, #4c4c53, #2c2c32);
+  --key-drag-legend: #efe7d6;
+  --key-drag-skirt: #131316;
+
+  /* Error e informativos */
+  --invalid-face: linear-gradient(158deg, #c8352c, #9c211b);
+  --invalid-legend: #ffdad6;
+  --invalid-skirt: #6e1712;
+  --dup: #d97706;
+  --dup-skirt: #92500a;
+
+  --font-display: "Archivo", "Arial Black", "Avenir Next Condensed", sans-serif;
+  --font-ui: "Space Grotesk", "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -62,8 +43,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg);
+  font-family: var(--font-ui);
+  background: radial-gradient(140% 100% at 50% 0%, #1c1711, #110d09 55%, #0a0705);
+  min-height: 100vh;
   color: var(--text);
 }
 
@@ -87,8 +69,10 @@ body {
 
 .topbar h1 {
   margin: 0;
-  font-size: 1.75rem;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.9rem;
+  letter-spacing: 0.02em;
 }
 
 .stats {
@@ -105,8 +89,9 @@ body {
 
 .stat-label {
   font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
 }
 
@@ -116,9 +101,10 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Últimos 10 segundos: el reloj se pone rojo y pulsa */
+/* Últimos 10 segundos: el reloj se enciende en acento y pulsa */
 .stat-value.warning {
-  color: var(--cell-invalid);
+  color: var(--accent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent), transparent 45%);
   animation: timer-pulse 1s ease-in-out infinite;
 }
 
@@ -128,48 +114,27 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .stat-value.warning {
-    animation: none;
-  }
-}
-
 .board-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
+/* Lectura de la palabra en curso */
 .current-word {
-  min-height: 1.75rem;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  min-height: 1.85rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 0.18em;
   color: var(--accent);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent), transparent 45%);
 }
 
 .grid-wrap {
   position: relative;
-  width: min(90vw, 420px);
-}
-
-#path-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-#path-line {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.5;
-  stroke-width: 10;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  width: min(84vw, 420px);
 }
 
 .grid-wrap .grid {
@@ -187,8 +152,8 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
-  color: var(--text);
-  text-shadow: 0 1px 6px var(--bg);
+  font-weight: 600;
+  color: #35312a;
   pointer-events: none;
   z-index: 3;
 }
@@ -197,78 +162,154 @@ body {
   display: flex;
 }
 
+#path-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Estela sobre la grilla */
+#path-line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent), transparent 40%);
+  stroke-width: 16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(8px, 2.5vw, 16px);
   width: 100%;
   aspect-ratio: 1;
-  padding: clamp(8px, 2.5vw, 16px);
+  padding: clamp(10px, 3vw, 18px);
   background: var(--plate);
-  border-radius: 16px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
-    0 4px 14px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--plate-border);
+  border-radius: 22px;
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.35),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25), 0 10px 26px rgba(0, 0, 0, 0.55);
   touch-action: none;
   user-select: none;
 }
+
+/* ——— Anatomía de la tecla: 4 estados ——— */
 
 .cell {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 1 / 1;
   background: var(--key-face);
   border: none;
-  border-radius: 8px;
-  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas,
-    "Courier New", monospace;
-  font-size: clamp(1.4rem, 8vw, 2.6rem);
-  font-weight: 700;
+  border-radius: 17px;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 7.5vw, 2.4rem);
+  font-weight: 800;
   color: var(--key-legend);
-  /* Relieve de keycap: bisel superior claro, cuenco interior, faldón (pared)
-     inferior oscuro y sombra ambiental — le da volumen 3D a la tecla. */
-  box-shadow: inset 0 3px 0 var(--key-hi), inset 0 -3px 5px var(--key-lo),
-    0 var(--key-depth) 0 var(--key-edge),
-    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.14),
+    inset 0 -4px 7px rgba(0, 0, 0, 0.5), 0 6px 0 var(--key-skirt),
+    0 11px 18px rgba(0, 0, 0, 0.6);
   cursor: pointer;
   transform: translateY(0);
   transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.08s ease,
     color 0.08s ease;
 }
 
-/* Presionada: la tecla baja el alto del faldón y este colapsa (recorrido físico) */
+/* Marca roja secundaria (solo visible en teclas crema en reposo) */
+.key-mark {
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--accent), transparent 15%);
+}
+
+.cell.selected .key-mark,
+.cell.valid .key-mark,
+.cell.invalid .key-mark,
+.cell.dup .key-mark {
+  display: none;
+}
+
+/* Arrastre: tecla oscura tipo modificador, hundida */
 .cell.selected {
-  background: var(--key-press);
-  color: var(--key-press-legend);
-  transform: translateY(var(--key-depth));
-  box-shadow: inset 0 2px 0 var(--key-hi), inset 0 -1px 2px var(--key-lo),
-    0 0 0 var(--key-edge), 0 1px 2px rgba(0, 0, 0, 0.45);
+  background: var(--key-drag-face);
+  color: var(--key-drag-legend);
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.55), 0 3px 0 var(--key-drag-skirt),
+    0 6px 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Correcta: retroiluminación en acento + pulse */
 .cell.valid {
-  background: var(--cell-valid);
+  background: linear-gradient(158deg, var(--accent-hi), var(--accent-lo));
   color: #fff;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 var(--key-depth) 0 #0f7a37,
-    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35), 0 3px 0 var(--accent-skirt),
+    0 0 30px color-mix(in srgb, var(--accent), transparent 10%),
+    0 0 62px color-mix(in srgb, var(--accent), transparent 50%);
+  animation: typoPulse 0.48s ease;
 }
 
+/* Inválida: rojo error + shake */
 .cell.invalid {
-  background: var(--cell-invalid);
-  color: #fff;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 var(--key-depth) 0 #9c1c1c,
-    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
+  background: var(--invalid-face);
+  color: var(--invalid-legend);
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.18),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.4), 0 3px 0 var(--invalid-skirt),
+    0 0 26px color-mix(in srgb, #c8352c, transparent 35%);
+  animation: typoShake 0.4s ease;
 }
 
-/* Palabra repetida: destello ámbar, mismo tratamiento de keycap */
+/* Repetida: ámbar informativo */
 .cell.dup {
-  background: var(--cell-dup);
+  background: linear-gradient(158deg, color-mix(in srgb, var(--dup), #ffffff 14%), var(--dup));
   color: #fff;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -3px 5px rgba(0, 0, 0, 0.2), 0 var(--key-depth) 0 #92500a,
-    0 calc(var(--key-depth) + 3px) 7px rgba(0, 0, 0, 0.35);
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.3), 0 3px 0 var(--dup-skirt),
+    0 0 24px color-mix(in srgb, var(--dup), transparent 40%);
+}
+
+@keyframes typoPulse {
+  0% {
+    transform: translateY(2px) scale(1);
+  }
+  45% {
+    transform: translateY(0) scale(1.07);
+  }
+  100% {
+    transform: translateY(2px) scale(1);
+  }
+}
+
+@keyframes typoShake {
+  0%,
+  100% {
+    transform: translateX(0) translateY(2px);
+  }
+  18% {
+    transform: translateX(-9px) translateY(2px);
+  }
+  38% {
+    transform: translateX(8px) translateY(2px);
+  }
+  58% {
+    transform: translateX(-5px) translateY(2px);
+  }
+  78% {
+    transform: translateX(4px) translateY(2px);
+  }
 }
 
 .cell.disabled {
@@ -278,11 +319,49 @@ body {
 
 .order-badge {
   position: absolute;
-  top: 4px;
-  right: 6px;
+  top: 6px;
+  right: 9px;
+  font-family: var(--font-ui);
   font-size: 0.75rem;
-  font-weight: 600;
-  opacity: 0.75;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Botones de giro a ambos lados del tablero */
+.rotate-side {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #b6aa8c;
+  background: linear-gradient(158deg, #efe9db, #dcd2bc);
+  color: #35312a;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.3), 0 4px 0 #aca081,
+    0 8px 14px rgba(0, 0, 0, 0.5);
+}
+
+.rotate-side-left {
+  left: 0;
+  transform: translate(-50%, -50%);
+  --side-x: -50%;
+}
+
+.rotate-side-right {
+  right: 0;
+  transform: translate(50%, -50%);
+  --side-x: 50%;
+}
+
+.rotate-side-left:active,
+.rotate-side-right:active {
+  transform: translate(var(--side-x), calc(-50% + 3px));
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.3), 0 1px 0 #aca081,
+    0 3px 6px rgba(0, 0, 0, 0.5);
 }
 
 .controls {
@@ -291,25 +370,50 @@ body {
 }
 
 .btn {
-  padding: 0.55rem 1.1rem;
-  border-radius: 8px;
-  border: 1px solid var(--cell-border);
-  background: var(--surface);
-  color: var(--text);
+  padding: 0.6rem 1.15rem;
+  border-radius: 12px;
+  border: 1px solid #b6aa8c;
+  background: linear-gradient(158deg, #efe9db, #dcd2bc);
+  color: #35312a;
+  font-family: var(--font-ui);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 5px 0 #aca081, 0 9px 14px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #aca081, 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: var(--accent-text);
+  background: linear-gradient(158deg, var(--accent-hi), var(--accent-lo));
+  color: #ffffff;
   border-color: transparent;
+  box-shadow: 0 5px 0 var(--accent-skirt), 0 9px 14px rgba(0, 0, 0, 0.45);
+}
+
+.btn-primary:active {
+  box-shadow: 0 2px 0 var(--accent-skirt), 0 4px 8px rgba(0, 0, 0, 0.45);
+}
+
+.btn-icon {
+  padding: 0.6rem 0.85rem;
+}
+
+.haptic-switch {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .hint {
@@ -345,10 +449,11 @@ body {
 
 .found-list li {
   background: var(--surface);
-  border: 1px solid var(--cell-border);
+  border: 1px solid var(--surface-border);
   border-radius: 999px;
-  padding: 0.2rem 0.65rem;
+  padding: 0.25rem 0.7rem;
   font-size: 0.85rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -360,8 +465,8 @@ body {
 
 /* Chip resaltado cuando repites una palabra ya encontrada */
 .found-list li.flash-dup {
-  background: var(--cell-dup);
-  border-color: var(--cell-dup);
+  background: var(--dup);
+  border-color: var(--dup);
   color: #fff;
 }
 
@@ -369,22 +474,10 @@ body {
   color: #fff;
 }
 
-.btn-icon {
-  padding: 0.55rem 0.8rem;
-}
-
-.haptic-switch {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(5, 3, 2, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -398,7 +491,8 @@ body {
 
 .modal {
   background: var(--surface);
-  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
   padding: 1.5rem;
   max-width: 26rem;
   width: 100%;
@@ -408,6 +502,8 @@ body {
 
 .modal h2 {
   margin-top: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
 }
 
 .modal-score strong {
@@ -433,9 +529,17 @@ body {
 }
 
 .missed-list li {
-  background: var(--bg);
-  border: 1px solid var(--cell-border);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--surface-border);
   border-radius: 999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.8rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-value.warning,
+  .cell.valid,
+  .cell.invalid {
+    animation: none;
+  }
 }

@@ -40,8 +40,8 @@
 - Dura 1:30 (90 segundos) desde que se pulsa **Comenzar**.
 - En los últimos 10 segundos el reloj se pone rojo, pulsa, y suena un tick por segundo
   (con vibración donde esté soportada).
-- El botón 🔄 gira el tablero 90° en cualquier momento (las palabras posibles son las
-  mismas; solo cambia tu perspectiva).
+- Los botones ⟲/⟳ a los lados del tablero lo giran 90° (antihorario/horario) en
+  cualquier momento; las palabras posibles son las mismas, solo cambia tu perspectiva.
 - Al acabar el tiempo se muestra el puntaje final, la palabra más larga encontrada, y
   hasta 15 de las palabras de mayor puntaje que existían en el tablero y no encontraste.
 - **Nuevo tablero** genera un tablero distinto en cualquier momento (reinicia la partida).
