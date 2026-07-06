@@ -1435,6 +1435,10 @@ body {
   width: 100%;
   justify-content: center;
 }
+/* en modo pista solo se muestra el primer span (el 2º es del marquee) */
+.tips-screen.clue .tips-track .tips-text:nth-child(2) {
+  display: none;
+}
 .tips-screen.clue .tips-text {
   width: 100%;
   text-align: center;
