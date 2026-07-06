@@ -219,3 +219,47 @@ binaria sobre el texto ordenado + un mini-trie por tablero (memoria baja: ~15–
 - Local: abrir `index.html` en el navegador.
 - Móvil (última versión): `rawcdn.githack.com/minarkhamprojects/Typo_game/<sha>/index.html`.
 - URL fija (pendiente de activar): GitHub Pages → `minarkhamprojects.github.io/Typo_game`.
+
+---
+
+## 10. Capturas por estado
+
+> Capturas a 400×860 @2x. **Nota**: se tomaron en un entorno que bloquea Google Fonts,
+> así que la LCD y las etiquetas salen con las fuentes de respaldo (no con VT323/
+> Silkscreen); en githack se ven las pixel/terminal reales. Todo lo demás (keycaps 3D,
+> iconos, colores, estados) es fiel.
+
+| Estado | Captura |
+|---|---|
+| **Reposo (blur pre-partida)** — tablero difuminado + "Pulsa Comenzar" | ![idle](img/01-idle-blur.png) |
+| **Arrastre** — teclas oscuras tipo modificador + estela roja + nº de orden | ![drag](img/03-drag.png) |
+| **Palabra válida** — retroiluminación en acento (rojo) con glow + pulse | ![valid](img/04-valid.png) |
+| **Palabra repetida** — ámbar en las teclas + chip resaltado | ![dup](img/05-dup.png) |
+| **Palabra inválida** — rojo error + shake | ![invalid](img/06-invalid.png) |
+| **Resumen final** — puntaje, más largas, palabras que te perdiste | ![summary](img/07-summary.png) |
+| **Menú ☰ / Cómo jugar** | ![help](img/08-help.png) |
+
+En reposo/juego se ven los detalles: pantalla **LCD "Typo"**, marcadores como teclas
+crema, **iconos 90s** (menú de barras, bocina con ondas, flechas de giro), y la **marca
+roja** mini en cada tecla.
+
+---
+
+## 11. Flujo de la partida
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle: newBoard() genera tablero jugable
+  Idle --> Playing: [Comenzar] initAudio · timer 90s · quita blur
+  Playing --> Playing: arrastrar→soltar (válida/repetida/inválida) · girar ↺/↻
+  Playing --> Ended: [Terminar] o se acaba el tiempo → endGame() · blur · resumen
+  Ended --> Idle: [Jugar de nuevo] / [Cambiar tablero] → newBoard()
+```
+
+- **Botón principal (rojo)** por estado: `Idle`→**Comenzar**, `Playing`→**Terminar**,
+  `Ended`→**Jugar de nuevo**.
+- **Aviso**: en `Playing`, cuando `timeLeft ≤ 10 s`, el reloj entra en modo alerta
+  (acento + pulse + tick sonoro + vibración por segundo).
+- **Veredicto** (solo al soltar): la ruta se pinta verde/ámbar/rojo 480 ms y se limpia;
+  suma puntos solo si es válida y nueva.
+
