@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=trivia" />
 </head>
 <body>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
@@ -48,7 +48,7 @@
         <span class="stat-value" id="score">0</span>
       </div>
       <div class="stat-key">
-        <span class="stat-label">Palabras</span>
+        <span class="stat-label" id="word-label">Palabras</span>
         <span class="stat-value" id="word-count">0</span>
       </div>
       <button id="menu-btn" class="key-btn sq" aria-label="Menú / cómo jugar">
@@ -58,9 +58,9 @@
 
     <main class="board-area">
       <div class="theme-banner" id="theme-banner" hidden>
-        <span class="theme-tag">◆ Tema</span>
+        <span class="theme-tag" id="banner-tag">◆ Tema</span>
         <span class="theme-name" id="theme-name"></span>
-        <span class="theme-secret">Secretas <b id="secret-count">0/5</b></span>
+        <span class="theme-secret"><span id="banner-label">Secretas</span> <b id="secret-count">0/5</b></span>
       </div>
       <div class="current-word" id="current-word">&nbsp;</div>
       <div class="grid-wrap" id="grid-wrap">
@@ -106,7 +106,7 @@
       <div class="secrets-reveal" id="secrets-reveal" hidden></div>
       <h3 class="records-title">Tus récords</h3>
       <div class="records" id="records"></div>
-      <div class="missed-section">
+      <div class="missed-section" id="missed-section">
         <h3>Palabras que te perdiste</h3>
         <ul class="missed-list" id="missed-list"></ul>
       </div>
@@ -116,6 +116,17 @@
 
   <div class="modal-overlay" id="help-overlay" hidden>
     <div class="modal">
+      <h3 class="mode-title">Modo de juego</h3>
+      <div class="mode-select">
+        <button type="button" class="mode-btn" data-mode="clasico">
+          <span class="mode-name">Clásico</span>
+          <span class="mode-desc">Forma cualquier palabra</span>
+        </button>
+        <button type="button" class="mode-btn" data-mode="trivia">
+          <span class="mode-name">Trivia</span>
+          <span class="mode-desc">Adivina por la pista</span>
+        </button>
+      </div>
       <h2>Cómo jugar</h2>
       <ul class="help-list">
         <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras.</li>
@@ -155,8 +166,9 @@
 
   <script src="pcbfx.js"></script>
   <script src="themes.js"></script>
+  <script src="trivia.js?v=trivia"></script>
   <script src="words_es.js"></script>
-  <script src="engine.js"></script>
-  <script src="game.js"></script>
+  <script src="engine.js?v=trivia"></script>
+  <script src="game.js?v=trivia"></script>
 </body>
 </html>

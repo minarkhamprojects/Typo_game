@@ -84,6 +84,36 @@
   const themeBanner = document.getElementById("theme-banner");
   const themeNameEl = document.getElementById("theme-name");
   const secretCountEl = document.getElementById("secret-count");
+  const bannerTagEl = document.getElementById("banner-tag");
+  const bannerLabelEl = document.getElementById("banner-label");
+  const wordLabelEl = document.getElementById("word-label");
+
+  // ——— Modo de juego: clásico | trivia ———
+  const MODE_KEY = "typo-mode";
+  let gameMode = localStorage.getItem(MODE_KEY) === "trivia" ? "trivia" : "clasico";
+  const TRIVIA_SECONDS = 120;       // reloj global de la partida trivia
+  const QUESTION_SECONDS = 15;      // tiempo por pregunta
+  const TRIVIA_COMPLETE_BONUS = 8;  // bono por encontrar todas las respuestas
+  const REVEAL_MS = 950;            // pausa para revelar antes de la siguiente pregunta
+  // estado de trivia
+  let triviaEntry = null;           // { id, clue, answers }
+  let answerSet = new Set();        // respuestas encontrables en el tablero actual
+  let questionFound = new Set();    // respuestas ya halladas esta pregunta
+  let questionTimeLeft = 0;
+  let questionsPlayed = 0;
+  let triviaAnswersTotal = 0;
+  let triviaScore = 0;
+  let questionLocked = false;       // durante la pausa de revelación
+  let lastTriviaId = null;
+  const TRIVIA_RECORDS_KEY = "typo-trivia-records";
+  function loadTriviaRecords() {
+    try { return JSON.parse(localStorage.getItem(TRIVIA_RECORDS_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function saveTriviaRecords() {
+    try { localStorage.setItem(TRIVIA_RECORDS_KEY, JSON.stringify(triviaRecords)); } catch (e) {}
+  }
+  let triviaRecords = loadTriviaRecords(); // { bestScore, bestAnswers }
 
   // iOS Safari no tiene navigator.vibrate. Truco: en iOS 17.4+ un <input switch>
   // dispara un tick háptico al TOGGLEARSE con .click() (no con .checked=). Para
@@ -385,12 +415,20 @@
   }
 
   function updateStats() {
-    scoreEl.textContent = String(totalScore());
-    // Contador de palabras: encontradas / posibles en el tablero
-    wordCountEl.textContent = possibleCount
-      ? foundWords.size + "/" + possibleCount
-      : String(foundWords.size);
-    wordCountEl.classList.toggle("has-total", possibleCount > 0);
+    if (gameMode === "trivia") {
+      scoreEl.textContent = String(triviaScore);
+      wordCountEl.textContent = String(questionsPlayed);
+      wordCountEl.classList.remove("has-total");
+      if (wordLabelEl) wordLabelEl.textContent = "Ronda";
+    } else {
+      scoreEl.textContent = String(totalScore());
+      // Contador de palabras: encontradas / posibles en el tablero
+      wordCountEl.textContent = possibleCount
+        ? foundWords.size + "/" + possibleCount
+        : String(foundWords.size);
+      wordCountEl.classList.toggle("has-total", possibleCount > 0);
+      if (wordLabelEl) wordLabelEl.textContent = "Palabras";
+    }
     timerEl.textContent = formatTime(timeLeft);
     timerEl.classList.toggle(
       "warning",
@@ -418,7 +456,15 @@
     }
     return "›  " + parts.join("     •     ") + "     •     ";
   }
+  const tipsScreenEl = document.querySelector(".tips-screen");
   function renderTicker() {
+    if (gameMode === "trivia" && state === "playing" && triviaEntry) {
+      if (tipsScreenEl) tipsScreenEl.classList.add("clue");
+      const clue = "» " + triviaEntry.clue.toUpperCase();
+      tipsEls.forEach((el, i) => (el.textContent = i === 0 ? clue : ""));
+      return;
+    }
+    if (tipsScreenEl) tipsScreenEl.classList.remove("clue");
     const s = tickerStream();
     tipsEls.forEach((el) => (el.textContent = s));
   }
@@ -586,6 +632,12 @@
   function submitPath() {
     if (path.length >= TypoEngine.MIN_WORD_LEN) {
       const word = TypoEngine.wordFromPath(grid, path);
+      if (gameMode === "trivia") {
+        submitTrivia(word);
+        path = [];
+        renderPath();
+        return;
+      }
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
       if (validWord && !foundWords.has(word)) {
         const isSecret = secretWords.has(word);
@@ -670,6 +722,14 @@
 
   function tick() {
     timeLeft -= 1;
+    if (gameMode === "trivia" && state === "playing" && !questionLocked) {
+      questionTimeLeft -= 1;
+      if (questionTimeLeft <= 0) {
+        endQuestion(false); // se acabó el tiempo de la pregunta → siguiente
+      } else {
+        renderTriviaBanner();
+      }
+    }
     updateStats();
     if (timeLeft <= 0) {
       endGame();
@@ -700,18 +760,201 @@
     playKeyClick();
   }
 
+  // ————————————— MODO TRIVIA —————————————
+
+  // Genera un tablero que contiene respuestas de la pregunta. Baja secretCount
+  // (6→3) porque los sinónimos no comparten letras. Devuelve {grid,solved,findable}.
+  function triviaBoardFor(answers) {
+    for (let sc = Math.min(6, answers.length); sc >= 3; sc--) {
+      const res = TypoEngine.generateThemedGrid(dictionary, answers, {
+        secretCount: sc,
+        maxAttempts: 160,
+      });
+      if (res) {
+        const solvedSet = new Set(res.solved.keys());
+        const findable = answers.filter((w) => solvedSet.has(w));
+        if (findable.length >= 3) return { grid: res.grid, solved: res.solved, findable };
+      }
+    }
+    return null;
+  }
+
+  function startQuestion() {
+    const bank = window.TYPO_TRIVIA || [];
+    if (!bank.length) return;
+    let entry = null;
+    let bd = null;
+    // elige entrada (distinta a la anterior) que produzca un tablero viable
+    for (let i = 0; i < 10 && !bd; i++) {
+      const cand = bank[Math.floor(Math.random() * bank.length)];
+      if (i < 6 && cand.id === lastTriviaId) continue;
+      const b = triviaBoardFor(cand.answers);
+      if (b) { entry = cand; bd = b; }
+    }
+    if (!bd) return;
+    lastTriviaId = entry.id;
+    triviaEntry = entry;
+    grid = bd.grid;
+    solved = bd.solved;
+    answerSet = new Set(bd.findable);
+    questionFound = new Set();
+    foundWords = new Map();
+    possibleCount = 0;
+    secretWords = new Set();
+    questionsPlayed++;
+    questionTimeLeft = QUESTION_SECONDS;
+    questionLocked = false;
+    path = [];
+    renderGrid();
+    renderPath();
+    renderFoundList();
+    updateStats();
+    renderTriviaBanner();
+    renderTicker(); // muestra la pista en la pantalla verde
+  }
+
+  // Reusa el #theme-banner como barra de trivia: contador + progreso
+  function renderTriviaBanner() {
+    if (!themeBanner) return;
+    themeBanner.hidden = false;
+    themeBanner.classList.add("trivia");
+    const done = answerSet.size > 0 && questionFound.size >= answerSet.size;
+    themeBanner.classList.toggle("complete", done);
+    themeBanner.classList.toggle("urgent", !done && questionTimeLeft <= 5);
+    if (bannerTagEl) bannerTagEl.textContent = "⏱ " + Math.max(0, questionTimeLeft) + "s";
+    if (themeNameEl) themeNameEl.textContent = "";
+    if (bannerLabelEl) bannerLabelEl.textContent = "Respuestas";
+    if (secretCountEl) secretCountEl.textContent = questionFound.size + "/" + answerSet.size;
+  }
+
+  // Revela en la lista las respuestas que faltaron (al terminar la pregunta)
+  function revealMissedAnswers() {
+    for (const w of answerSet) {
+      if (questionFound.has(w)) continue;
+      const li = document.createElement("li");
+      li.className = "missed-answer";
+      li.textContent = w;
+      foundListEl.appendChild(li);
+    }
+  }
+
+  // Fin de una pregunta (completada o por tiempo) → pausa breve → siguiente
+  function endQuestion(completed) {
+    if (questionLocked) return;
+    questionLocked = true;
+    if (completed) {
+      triviaScore += TRIVIA_COMPLETE_BONUS;
+      vibrate([30, 20, 30, 20, 30, 20, 30, 20, 120]);
+      playSecret();
+    } else {
+      vibrate(20);
+      playDup();
+    }
+    revealMissedAnswers();
+    updateStats();
+    setTimeout(() => {
+      if (state === "playing" && timeLeft > 0) startQuestion();
+    }, REVEAL_MS);
+  }
+
+  function submitTrivia(word) {
+    if (questionLocked) return;
+    const valid = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
+    if (!valid) {
+      playFail();
+      flashResult(path, "invalid");
+      currentWordEl.classList.add("invalid");
+      setTimeout(() => currentWordEl.classList.remove("invalid"), 480);
+      return;
+    }
+    if (answerSet.has(word)) {
+      if (foundWords.has(word)) {
+        // ya la encontraste esta pregunta
+        playDup();
+        flashResult(path, "dup");
+        flashFoundChip(word);
+        return;
+      }
+      const pts = TypoEngine.scoreForLength(word.length);
+      foundWords.set(word, pts);
+      questionFound.add(word);
+      triviaScore += pts;
+      triviaAnswersTotal++;
+      vibrate([35, 25, 35, 25, 35, 25, 75]);
+      playSuccess();
+      flashResult(path, "valid");
+      renderFoundList();
+      renderTriviaBanner();
+      updateStats();
+      if (questionFound.size >= answerSet.size) endQuestion(true);
+    } else {
+      // palabra válida pero NO es respuesta de la pista → no cuenta (ámbar)
+      playDup();
+      flashResult(path, "dup");
+    }
+  }
+
+  function endTrivia() {
+    const newScore = triviaScore > (triviaRecords.bestScore || 0);
+    if (newScore) triviaRecords.bestScore = triviaScore;
+    if (triviaAnswersTotal > (triviaRecords.bestAnswers || 0))
+      triviaRecords.bestAnswers = triviaAnswersTotal;
+    saveTriviaRecords();
+
+    finalScoreEl.textContent = String(triviaScore);
+    finalDetailsEl.textContent =
+      questionsPlayed + " preguntas · " + triviaAnswersTotal + " respuestas acertadas";
+
+    const secretsEl = document.getElementById("secrets-reveal");
+    if (secretsEl) secretsEl.hidden = true;
+    const missedSection = document.getElementById("missed-section");
+    if (missedSection) missedSection.hidden = true;
+    if (themeBanner) themeBanner.hidden = true;
+
+    // panel de récords → récords de trivia
+    const recEl = document.getElementById("records");
+    if (recEl) {
+      const badge = (on) => (on ? ' <b class="rec-new">¡NUEVO!</b>' : "");
+      recEl.innerHTML =
+        '<div class="rec-row"><span class="rec-label">Mejor puntaje trivia</span>' +
+        '<span class="rec-val">' + (triviaRecords.bestScore || 0) + badge(newScore) + "</span></div>" +
+        '<div class="rec-row"><span class="rec-label">Más respuestas</span>' +
+        '<span class="rec-val">' + (triviaRecords.bestAnswers || 0) + "</span></div>";
+    }
+    summaryOverlay.hidden = false;
+  }
+
+  // ————————————————————————————————————————
+
   function startGame() {
     initAudio();
     state = "playing";
     gridWrapEl.classList.remove("blurred");
-    timeLeft = GAME_SECONDS;
     foundWords = new Map();
-    longestRecordThisGame = false;
     path = [];
+    if (gameMode === "trivia" && (window.TYPO_TRIVIA || []).length) {
+      timeLeft = TRIVIA_SECONDS;
+      triviaScore = 0;
+      questionsPlayed = 0;
+      triviaAnswersTotal = 0;
+      lastTriviaId = null;
+      questionLocked = false;
+      newBoardBtn.disabled = false; // funciona como "Saltar"
+      newBoardBtn.textContent = "Saltar";
+      updateStartBtn();
+      renderFoundList();
+      updateStats();
+      startQuestion();
+      timerHandle = setInterval(tick, 1000);
+      return;
+    }
+    timeLeft = GAME_SECONDS;
+    longestRecordThisGame = false;
     renderFoundList();
     renderPath();
     updateStats();
     newBoardBtn.disabled = true;
+    newBoardBtn.textContent = "Cambiar tablero";
     updateStartBtn();
     renderTicker(); // al iniciar, el ticker pasará a mostrar definiciones
     timerHandle = setInterval(tick, 1000);
@@ -732,7 +975,16 @@
     clearInterval(timerHandle);
     timerHandle = null;
     newBoardBtn.disabled = false;
+    newBoardBtn.textContent = "Cambiar tablero";
     updateStartBtn();
+
+    if (gameMode === "trivia") {
+      endTrivia();
+      return;
+    }
+
+    const missedSectionEl = document.getElementById("missed-section");
+    if (missedSectionEl) missedSectionEl.hidden = false;
 
     // Récords: puntaje y nº de palabras de esta partida
     const sc = totalScore();
@@ -829,8 +1081,11 @@
 
   function updateThemeBanner() {
     if (!themeBanner) return;
+    themeBanner.classList.remove("trivia", "urgent");
     if (secretWords.size) {
       themeBanner.hidden = false;
+      if (bannerTagEl) bannerTagEl.textContent = "◆ Tema";
+      if (bannerLabelEl) bannerLabelEl.textContent = "Secretas";
       if (themeNameEl) themeNameEl.textContent = themeName;
       if (secretCountEl) secretCountEl.textContent = secretsFound + "/" + secretWords.size;
       themeBanner.classList.toggle("complete", secretsFound >= secretWords.size);
@@ -884,6 +1139,10 @@
     }
   });
   newBoardBtn.addEventListener("click", () => {
+    if (gameMode === "trivia" && state === "playing") {
+      if (!questionLocked) endQuestion(false); // saltar pregunta
+      return;
+    }
     if (state === "playing") clearInterval(timerHandle);
     newBoard();
   });
@@ -907,6 +1166,20 @@
   helpOverlay.addEventListener("click", (e) => {
     if (e.target === helpOverlay) helpOverlay.hidden = true;
   });
+
+  // Selector de modo (Clásico / Trivia) en el menú
+  const modeBtns = document.querySelectorAll(".mode-btn");
+  function updateModeButtons() {
+    modeBtns.forEach((b) => b.classList.toggle("active", b.dataset.mode === gameMode));
+  }
+  modeBtns.forEach((b) =>
+    b.addEventListener("click", () => {
+      gameMode = b.dataset.mode === "trivia" ? "trivia" : "clasico";
+      try { localStorage.setItem(MODE_KEY, gameMode); } catch (e) {}
+      updateModeButtons();
+    })
+  );
+  updateModeButtons();
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && audioCtx && audioCtx.state === "suspended") {
       audioCtx.resume();
@@ -934,7 +1207,7 @@
     });
   }
 
-  // PWA: registra el service worker (app instalable + offline)
+  // PWA: registra el service worker (app instalable + offline, network-first)
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").catch(() => {});

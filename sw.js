@@ -1,6 +1,7 @@
 /* Service worker de Typo: cachea los archivos para que la app abra offline
-   y sea instalable. Cache-first para arranque instantáneo. */
-const CACHE = "typo-v1";
+   y sea instalable. Network-first: online siempre trae lo último (updates),
+   offline cae al caché. */
+const CACHE = "typo-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -38,18 +39,16 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Network-first: intenta red (fresco), cachea, y si no hay red usa el caché.
   e.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          if (res.ok && new URL(req.url).origin === location.origin) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-    })
+    fetch(req)
+      .then((res) => {
+        if (res.ok && new URL(req.url).origin === location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
   );
 });
