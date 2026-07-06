@@ -164,11 +164,15 @@ cortos con envolvente exponencial (`tone(freq, startIn, duration, type, volume)`
 
 | Evento | Sonido |
 |---|---|
-| Conectar letra | click `square` 1400–1900 Hz, 35 ms, vol .06 (tono variable) |
-| Palabra válida | chime `triangle` 523→659→784 Hz (do-mi-sol), vol .22 |
-| Palabra repetida | doble `triangle` 440 Hz |
-| Palabra inválida | buzz `sawtooth` 160→120 Hz |
-| Tick de aviso (≤10 s) | `square` 880 Hz, 60 ms |
+| Conectar letra | **"thock" mecánico** (`keyThock`): transiente de ruido con bandpass ~2300 Hz + highpass, más cuerpo grave de seno ~128 Hz; tono ligeramente variable por tecla |
+| Palabra válida | **doble thock** ascendente (seno 155 y 200 Hz, click 2700/3100) |
+| Palabra repetida | thock único (seno 175 Hz, click 2200) |
+| Palabra inválida | **buzzer retro descendente** `square` 330→247→160 Hz |
+| Tick de aviso (≤10 s) | `square` 880 Hz, 60 ms (`playWarnTick`, sin cambios) |
+
+> El motor `keyThock` construye el "thock" con un `AudioBufferSource` de ruido reutilizable
+> filtrado (bandpass+highpass) para el transiente, sumado a un oscilador seno que baja de
+> tono para el cuerpo — evoca una tecla mecánica ASMR en vez de un beep.
 
 - **Botón 🔊 / silencio** persiste en `localStorage` (`typo-muted`).
 - **iOS**: `navigator.audioSession.type = "playback"` (suena aunque el iPhone esté en

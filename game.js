@@ -95,25 +95,68 @@
     osc.stop(t + duration);
   }
 
+  // Buffer de ruido reutilizable para el "thock" ASMR de tecla mecánica
+  let _noiseBuf = null;
+  function _noise() {
+    if (_noiseBuf) return _noiseBuf;
+    const b = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.1), audioCtx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return (_noiseBuf = b);
+  }
+
+  // thock de tecla: transiente de ruido filtrado + cuerpo grave de seno
+  function keyThock(startIn, o) {
+    if (!audioCtx || muted) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    o = o || {};
+    const g = o.gain || 0.4;
+    const t = audioCtx.currentTime + (startIn || 0);
+    const src = audioCtx.createBufferSource(); src.buffer = _noise();
+    const bp = audioCtx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = o.click || 2400; bp.Q.value = 0.9;
+    const hp = audioCtx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 900;
+    const ng = audioCtx.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(g * 0.1, t + 0.002);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    src.connect(bp); bp.connect(hp); hp.connect(ng); ng.connect(audioCtx.destination);
+    src.start(t); src.stop(t + 0.05);
+    const os = audioCtx.createOscillator(); os.type = "sine";
+    os.frequency.setValueAtTime(o.thock || 130, t);
+    os.frequency.exponentialRampToValueAtTime((o.thock || 130) * 0.7, t + 0.045);
+    const og = audioCtx.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(g * 0.13, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    os.connect(og); og.connect(audioCtx.destination); os.start(t); os.stop(t + 0.07);
+  }
+
   function playKeyClick() {
-    // Click mecánico corto con tono levemente variable para no sonar a metralleta
-    tone(1400 + Math.random() * 500, 0, 0.035, "square", 0.06);
+    keyThock(0, { thock: 128 + Math.random() * 22, click: 2300 + Math.random() * 500, gain: 0.4 });
   }
 
   function playSuccess() {
-    tone(523, 0, 0.09, "triangle", 0.22); // do
-    tone(659, 0.08, 0.09, "triangle", 0.22); // mi
-    tone(784, 0.16, 0.14, "triangle", 0.22); // sol
+    keyThock(0,     { thock: 155, click: 2700, gain: 0.5 });
+    keyThock(0.055, { thock: 200, click: 3100, gain: 0.42 });
   }
 
   function playDup() {
-    tone(440, 0, 0.12, "triangle", 0.18);
-    tone(440, 0.13, 0.12, "triangle", 0.14);
+    keyThock(0, { thock: 175, click: 2200, gain: 0.42 });
   }
 
   function playFail() {
-    tone(160, 0, 0.16, "sawtooth", 0.16);
-    tone(120, 0.1, 0.2, "sawtooth", 0.14);
+    // buzzer retro descendente de dos tonos
+    if (!audioCtx || muted) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    [[330, 0], [247, 0.085], [160, 0.17]].forEach(([f, dt]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + dt);
+      g.gain.exponentialRampToValueAtTime(0.05, t0 + dt + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.1);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t0 + dt); o.stop(t0 + dt + 0.11);
+    });
   }
 
   function playWarnTick() {
