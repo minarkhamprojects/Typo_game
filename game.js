@@ -121,7 +121,8 @@
   }
 
   function updateMuteBtn() {
-    muteBtn.textContent = muted ? "🔇" : "🔊";
+    muteBtn.classList.toggle("muted", muted);
+    muteBtn.setAttribute("aria-label", muted ? "Activar sonido" : "Silenciar sonido");
   }
 
   function formatTime(seconds) {

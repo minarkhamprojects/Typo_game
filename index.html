@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>Typo — Buscapalabras</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,7 +23,9 @@
         <span class="stat-label">Palabras</span>
         <span class="stat-value" id="word-count">0</span>
       </div>
-      <button id="menu-btn" class="key-btn sq" aria-label="Menú / cómo jugar">☰</button>
+      <button id="menu-btn" class="key-btn sq" aria-label="Menú / cómo jugar">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="4" y="6" width="16" height="2.8" rx="1" /><rect x="4" y="10.6" width="16" height="2.8" rx="1" /><rect x="4" y="15.2" width="16" height="2.8" rx="1" /></g></svg>
+      </button>
     </header>
 
     <main class="board-area">
@@ -34,11 +36,17 @@
         <div class="blur-hint"><span>Pulsa <strong>Comenzar</strong></span></div>
       </div>
       <div class="controls">
-        <button id="rotate-left" class="key-btn sq" aria-label="Girar el tablero a la izquierda">↺</button>
+        <button id="rotate-left" class="key-btn sq" aria-label="Girar el tablero a la izquierda">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9c-2.5 0-4.9 1-6.7 2.7L3 8" /><path d="M3 3v5h5" /></svg>
+        </button>
         <button id="start-btn" class="btn btn-primary wide">Comenzar</button>
         <button id="new-board-btn" class="btn wide">Cambiar tablero</button>
-        <button id="mute-btn" class="key-btn sq" aria-label="Activar o silenciar sonido">🔊</button>
-        <button id="rotate-right" class="key-btn sq" aria-label="Girar el tablero a la derecha">↻</button>
+        <button id="mute-btn" class="key-btn sq" aria-label="Silenciar sonido">
+          <svg class="icon icon-sound" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" /><g class="waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6" /><path d="M18 6.5a8 8 0 0 1 0 11" /></g><line class="slash" x1="3.5" y1="4" x2="20.5" y2="20" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg>
+        </button>
+        <button id="rotate-right" class="key-btn sq" aria-label="Girar el tablero a la derecha">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8" /><path d="M21 3v5h-5" /></svg>
+        </button>
       </div>
       <!-- Switch nativo oculto: en iOS 17.4+ togglearlo produce un tick háptico
            (best-effort; navigator.vibrate no existe en iOS Safari) -->

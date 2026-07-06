@@ -74,3 +74,6 @@
 - [x] Distribución de la guía: pantalla LCD ámbar "Typo", marcadores como teclas crema,
       botón ☰ (abre Cómo jugar), tablero sin placa con gap ~7px, y barra inferior
       ↺ · Comenzar · Cambiar tablero · Son · ↻ (giros movidos a la barra inferior)
+- [x] Iconos estilo teclado 90s: bocina con ondas (+ tachado rojo al silenciar), flechas
+      de giro y barras de menú como SVG grabados en las teclas; tipografías pixel/terminal
+      (VT323 en LCD/lecturas/marcadores, Silkscreen en etiquetas y botones)
