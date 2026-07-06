@@ -107,7 +107,7 @@
       <h3 class="records-title">Tus récords</h3>
       <div class="records" id="records"></div>
       <div class="missed-section" id="missed-section">
-        <h3>Palabras que te perdiste</h3>
+        <h3 id="missed-title">Palabras que te perdiste</h3>
         <ul class="missed-list" id="missed-list"></ul>
       </div>
       <button id="play-again-btn" class="btn btn-primary">Jugar de nuevo</button>
@@ -127,39 +127,80 @@
           <span class="mode-desc">Adivina por la pista</span>
         </button>
       </div>
+      <h3 class="records-title">Tus récords · <span id="menu-mode-name">Clásico</span></h3>
+      <div class="records" id="menu-records"></div>
+
       <h2>Cómo jugar</h2>
-      <ul class="help-list">
-        <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras.</li>
-        <li>El veredicto aparece <strong>al soltar</strong>: verde = válida, ámbar = repetida, rojo = no existe.</li>
-        <li>Tienes <strong>1:30</strong>; en los últimos 10 s el reloj avisa.</li>
-      </ul>
-      <h3>Controles</h3>
-      <ul class="controls-legend">
-        <li>
-          <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9c-2.5 0-4.9 1-6.7 2.7L3 8" /><path d="M3 3v5h5" /></svg></span>
-          <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8" /><path d="M21 3v5h-5" /></svg></span>
-          <span class="ctrl-desc">Giran el tablero</span>
-        </li>
-        <li>
-          <span class="ctrl-key">Cambiar tablero</span>
-          <span class="ctrl-desc">Genera un tablero nuevo</span>
-        </li>
-        <li>
-          <span class="ctrl-ico"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6" /><path d="M18 6.5a8 8 0 0 1 0 11" /></g></svg></span>
-          <span class="ctrl-desc">Activa o silencia el sonido</span>
-        </li>
-      </ul>
-      <h3>Puntaje por longitud</h3>
-      <table class="score-table">
-        <tbody>
-          <tr><td>3–4 letras</td><td>1 punto</td></tr>
-          <tr><td>5 letras</td><td>2 puntos</td></tr>
-          <tr><td>6 letras</td><td>3 puntos</td></tr>
-          <tr><td>7 letras</td><td>5 puntos</td></tr>
-          <tr><td>8 letras</td><td>11 puntos</td></tr>
-          <tr><td>9 o más</td><td>11 + 3 por letra extra</td></tr>
-        </tbody>
-      </table>
+
+      <!-- Instrucciones del modo CLÁSICO -->
+      <div class="menu-instr" id="instr-clasico">
+        <ul class="help-list">
+          <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras.</li>
+          <li>El veredicto aparece <strong>al soltar</strong>: verde = válida, ámbar = repetida, rojo = no existe.</li>
+          <li>Tienes <strong>1:30</strong>; en los últimos 10 s el reloj avisa.</li>
+        </ul>
+        <h3>Controles</h3>
+        <ul class="controls-legend">
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9c-2.5 0-4.9 1-6.7 2.7L3 8" /><path d="M3 3v5h5" /></svg></span>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8" /><path d="M21 3v5h-5" /></svg></span>
+            <span class="ctrl-desc">Giran el tablero</span>
+          </li>
+          <li>
+            <span class="ctrl-key">Cambiar tablero</span>
+            <span class="ctrl-desc">Genera un tablero nuevo</span>
+          </li>
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6" /><path d="M18 6.5a8 8 0 0 1 0 11" /></g></svg></span>
+            <span class="ctrl-desc">Activa o silencia el sonido</span>
+          </li>
+        </ul>
+        <h3>Puntaje por longitud</h3>
+        <table class="score-table">
+          <tbody>
+            <tr><td>3–4 letras</td><td>1 punto</td></tr>
+            <tr><td>5 letras</td><td>2 puntos</td></tr>
+            <tr><td>6 letras</td><td>3 puntos</td></tr>
+            <tr><td>7 letras</td><td>5 puntos</td></tr>
+            <tr><td>8 letras</td><td>11 puntos</td></tr>
+            <tr><td>9 o más</td><td>11 + 3 por letra extra</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Instrucciones del modo TRIVIA -->
+      <div class="menu-instr" id="instr-trivia" hidden>
+        <ul class="help-list">
+          <li>Lee la <strong>pista</strong> en la pantalla verde (la definición de una palabra).</li>
+          <li><strong>Arrastra</strong> para encontrar <strong>todas las respuestas</strong> en el tablero: conjugaciones (ABRE, ABRES, ABRIR…) o sinónimos (BOTE, LANCHA…).</li>
+          <li>Solo cuentan las palabras de la pista; las demás <strong>no suman</strong>.</li>
+          <li><strong>15 s</strong> por pregunta. Encontrarlas <strong>todas</strong> da un bono. Tienes <strong>2:00</strong> en total.</li>
+        </ul>
+        <h3>Controles</h3>
+        <ul class="controls-legend">
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9c-2.5 0-4.9 1-6.7 2.7L3 8" /><path d="M3 3v5h5" /></svg></span>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8" /><path d="M21 3v5h-5" /></svg></span>
+            <span class="ctrl-desc">Giran el tablero</span>
+          </li>
+          <li>
+            <span class="ctrl-key">Saltar</span>
+            <span class="ctrl-desc">Pasa a la siguiente pregunta</span>
+          </li>
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6" /><path d="M18 6.5a8 8 0 0 1 0 11" /></g></svg></span>
+            <span class="ctrl-desc">Activa o silencia el sonido</span>
+          </li>
+        </ul>
+        <h3>Puntaje</h3>
+        <table class="score-table">
+          <tbody>
+            <tr><td>Cada respuesta</td><td>según su longitud</td></tr>
+            <tr><td>Todas las de una pista</td><td>bono +8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <button id="help-close-btn" class="btn btn-primary">Entendido</button>
     </div>
   </div>

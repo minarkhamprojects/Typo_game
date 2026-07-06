@@ -105,6 +105,8 @@
   let triviaScore = 0;
   let questionLocked = false;       // durante la pausa de revelación
   let lastTriviaId = null;
+  let usedTriviaIds = new Set();    // preguntas ya usadas en esta partida (sin repetir)
+  let triviaFoundWords = [];        // respuestas acertadas en toda la partida
   const TRIVIA_RECORDS_KEY = "typo-trivia-records";
   function loadTriviaRecords() {
     try { return JSON.parse(localStorage.getItem(TRIVIA_RECORDS_KEY)) || {}; }
@@ -263,6 +265,12 @@
     blip(0.15, 2093, 0.12, "triangle", 0.18); // C7
     blip(0.21, 2637, 0.18, "sine",     0.16); // E7 (remate)
     blip(0.22, 4186, 0.14, "sine",     0.07); // chispa muy aguda
+  }
+
+  function playNextQuestion() {
+    // pitido corto al cambiar de pregunta (dos tonos)
+    blip(0.0,  784,  0.09, "square", 0.14); // G5
+    blip(0.07, 1047, 0.12, "sine",   0.13); // C6
   }
 
   function playDup() {
@@ -782,16 +790,25 @@
   function startQuestion() {
     const bank = window.TYPO_TRIVIA || [];
     if (!bank.length) return;
+    // pool SIN repetir en esta partida (si se agotan, se reinicia el ciclo)
+    let pool = bank.filter((e) => !usedTriviaIds.has(e.id));
+    if (!pool.length) {
+      usedTriviaIds.clear();
+      pool = bank.slice();
+    }
+    // baraja y toma la primera entrada que genere un tablero viable
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
     let entry = null;
     let bd = null;
-    // elige entrada (distinta a la anterior) que produzca un tablero viable
-    for (let i = 0; i < 10 && !bd; i++) {
-      const cand = bank[Math.floor(Math.random() * bank.length)];
-      if (i < 6 && cand.id === lastTriviaId) continue;
+    for (const cand of pool) {
       const b = triviaBoardFor(cand.answers);
-      if (b) { entry = cand; bd = b; }
+      if (b) { entry = cand; bd = b; break; }
     }
     if (!bd) return;
+    usedTriviaIds.add(entry.id);
     lastTriviaId = entry.id;
     triviaEntry = entry;
     grid = bd.grid;
@@ -811,6 +828,7 @@
     updateStats();
     renderTriviaBanner();
     renderTicker(); // muestra la pista en la pantalla verde
+    if (questionsPlayed > 1) playNextQuestion(); // pitido al cambiar de pregunta
   }
 
   // Reusa el #theme-banner como barra de trivia: contador + progreso
@@ -880,6 +898,10 @@
       questionFound.add(word);
       triviaScore += pts;
       triviaAnswersTotal++;
+      triviaFoundWords.push(word);
+      if (word.length > (triviaRecords.longestWord ? triviaRecords.longestWord.length : 0)) {
+        triviaRecords.longestWord = word;
+      }
       vibrate([35, 25, 35, 25, 35, 25, 75]);
       playSuccess();
       flashResult(path, "valid");
@@ -896,9 +918,9 @@
 
   function endTrivia() {
     const newScore = triviaScore > (triviaRecords.bestScore || 0);
+    const newAnswers = triviaAnswersTotal > (triviaRecords.bestAnswers || 0);
     if (newScore) triviaRecords.bestScore = triviaScore;
-    if (triviaAnswersTotal > (triviaRecords.bestAnswers || 0))
-      triviaRecords.bestAnswers = triviaAnswersTotal;
+    if (newAnswers) triviaRecords.bestAnswers = triviaAnswersTotal;
     saveTriviaRecords();
 
     finalScoreEl.textContent = String(triviaScore);
@@ -907,20 +929,34 @@
 
     const secretsEl = document.getElementById("secrets-reveal");
     if (secretsEl) secretsEl.hidden = true;
-    const missedSection = document.getElementById("missed-section");
-    if (missedSection) missedSection.hidden = true;
     if (themeBanner) themeBanner.hidden = true;
 
-    // panel de récords → récords de trivia
+    // récords de trivia
     const recEl = document.getElementById("records");
     if (recEl) {
       const badge = (on) => (on ? ' <b class="rec-new">¡NUEVO!</b>' : "");
+      const lw = triviaRecords.longestWord
+        ? triviaRecords.longestWord + " (" + triviaRecords.longestWord.length + ")"
+        : "—";
       recEl.innerHTML =
-        '<div class="rec-row"><span class="rec-label">Mejor puntaje trivia</span>' +
-        '<span class="rec-val">' + (triviaRecords.bestScore || 0) + badge(newScore) + "</span></div>" +
-        '<div class="rec-row"><span class="rec-label">Más respuestas</span>' +
-        '<span class="rec-val">' + (triviaRecords.bestAnswers || 0) + "</span></div>";
+        '<div class="rec-row"><span class="rec-label">Palabra más larga</span><span class="rec-val">' + lw + "</span></div>" +
+        '<div class="rec-row"><span class="rec-label">Mejor puntaje</span><span class="rec-val">' + (triviaRecords.bestScore || 0) + badge(newScore) + "</span></div>" +
+        '<div class="rec-row"><span class="rec-label">Más respuestas</span><span class="rec-val">' + (triviaRecords.bestAnswers || 0) + badge(newAnswers) + "</span></div>";
     }
+
+    // palabras que encontraste en la partida
+    const missedSection = document.getElementById("missed-section");
+    const missedTitle = document.getElementById("missed-title");
+    const found = [...new Set(triviaFoundWords)];
+    if (missedTitle) missedTitle.textContent = "Palabras que encontraste (" + found.length + ")";
+    missedListEl.innerHTML = "";
+    found.forEach((w) => {
+      const li = document.createElement("li");
+      li.textContent = w;
+      missedListEl.appendChild(li);
+    });
+    if (missedSection) missedSection.hidden = found.length === 0;
+
     summaryOverlay.hidden = false;
   }
 
@@ -938,6 +974,8 @@
       questionsPlayed = 0;
       triviaAnswersTotal = 0;
       lastTriviaId = null;
+      usedTriviaIds = new Set();
+      triviaFoundWords = [];
       questionLocked = false;
       newBoardBtn.disabled = false; // funciona como "Saltar"
       newBoardBtn.textContent = "Saltar";
@@ -985,6 +1023,8 @@
 
     const missedSectionEl = document.getElementById("missed-section");
     if (missedSectionEl) missedSectionEl.hidden = false;
+    const missedTitleEl = document.getElementById("missed-title");
+    if (missedTitleEl) missedTitleEl.textContent = "Palabras que te perdiste";
 
     // Récords: puntaje y nº de palabras de esta partida
     const sc = totalScore();
@@ -1158,6 +1198,7 @@
   rotateLeftBtn.addEventListener("click", () => rotateBoard(-1));
   rotateRightBtn.addEventListener("click", () => rotateBoard(1));
   menuBtn.addEventListener("click", () => {
+    updateMenu();
     helpOverlay.hidden = false;
   });
   helpCloseBtn.addEventListener("click", () => {
@@ -1172,11 +1213,39 @@
   function updateModeButtons() {
     modeBtns.forEach((b) => b.classList.toggle("active", b.dataset.mode === gameMode));
   }
+  // Menú dinámico: récords + instrucciones del modo seleccionado
+  function updateMenu() {
+    const isTrivia = gameMode === "trivia";
+    const ic = document.getElementById("instr-clasico");
+    const it = document.getElementById("instr-trivia");
+    if (ic) ic.hidden = isTrivia;
+    if (it) it.hidden = !isTrivia;
+    const nameEl = document.getElementById("menu-mode-name");
+    if (nameEl) nameEl.textContent = isTrivia ? "Trivia" : "Clásico";
+    const rec = document.getElementById("menu-records");
+    if (rec) {
+      const rows = isTrivia
+        ? [
+            ["Palabra más larga", triviaRecords.longestWord ? triviaRecords.longestWord + " (" + triviaRecords.longestWord.length + ")" : "—"],
+            ["Mejor puntaje", triviaRecords.bestScore || 0],
+            ["Más respuestas", triviaRecords.bestAnswers || 0],
+          ]
+        : [
+            ["Palabra más larga", records.longestWord ? records.longestWord + " (" + records.longestWord.length + ")" : "—"],
+            ["Mejor puntaje", records.bestScore || 0],
+            ["Más palabras", records.bestWords || 0],
+          ];
+      rec.innerHTML = rows
+        .map((r) => '<div class="rec-row"><span class="rec-label">' + r[0] + '</span><span class="rec-val">' + r[1] + "</span></div>")
+        .join("");
+    }
+  }
   modeBtns.forEach((b) =>
     b.addEventListener("click", () => {
       gameMode = b.dataset.mode === "trivia" ? "trivia" : "clasico";
       try { localStorage.setItem(MODE_KEY, gameMode); } catch (e) {}
       updateModeButtons();
+      updateMenu();
     })
   );
   updateModeButtons();
