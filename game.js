@@ -85,15 +85,33 @@
   const themeNameEl = document.getElementById("theme-name");
   const secretCountEl = document.getElementById("secret-count");
 
+  // iOS Safari no tiene navigator.vibrate. Truco: en iOS 17.4+ un <input switch>
+  // dispara un tick háptico al TOGGLEARSE con .click() (no con .checked=). Para
+  // que se sienta más fuerte, lanzamos una RÁFAGA de ticks muy juntos.
+  function iosHapticBurst(ticks) {
+    if (!hapticSwitch) return;
+    let i = 0;
+    const fire = () => {
+      try {
+        hapticSwitch.click();
+      } catch (e) {}
+      if (++i < ticks) setTimeout(fire, 20);
+    };
+    fire();
+  }
+
   function vibrate(pattern) {
     if (navigator.vibrate) {
-      navigator.vibrate(pattern);
-    } else if (hapticSwitch) {
-      // iOS Safari no tiene navigator.vibrate; togglear un switch nativo
-      // produce un tick háptico en iOS 17.4+ (best-effort, no-op si Apple
-      // exige interacción manual).
-      hapticSwitch.checked = !hapticSwitch.checked;
+      // Android: vibración real, se usa el patrón tal cual (fuerte)
+      try { navigator.vibrate(pattern); } catch (e) {}
+      return;
     }
+    // iOS: fuerza ~ nº de pulsos del patrón -> nº de ticks en ráfaga
+    let onPulses;
+    if (Array.isArray(pattern)) onPulses = Math.ceil(pattern.length / 2);
+    else onPulses = pattern >= 30 ? 3 : pattern >= 18 ? 2 : 1;
+    const ticks = Math.max(1, Math.min(9, Math.round(onPulses * 1.7)));
+    iosHapticBurst(ticks);
   }
 
   // --- Sonido retro sintetizado (Web Audio, sin archivos externos) ---
@@ -578,11 +596,13 @@
           // palabra secreta: bono, flash dorado, háptico y fanfarria
           secretsFound++;
           updateThemeBanner();
-          vibrate([20, 30, 20, 30, 20, 40, 90]);
+          // secreta = el háptico más fuerte (ráfaga larga)
+          vibrate([30, 20, 30, 20, 30, 20, 30, 20, 120]);
           playSecret();
           flashResult(path, "secret");
         } else {
-          vibrate([25, 30, 25, 30, 55]);
+          // acierto = háptico fuerte
+          vibrate([35, 25, 35, 25, 35, 25, 75]);
           playSuccess();
           flashResult(path, "valid");
         }
@@ -908,6 +928,7 @@
     }, 1300);
     splashStart.addEventListener("click", () => {
       initAudio(); // el gesto del usuario desbloquea el audio
+      vibrate([40, 30, 60]); // "arma" el háptico dentro del gesto + feedback
       splashEl.classList.add("hidden");
       startGame();
     });
