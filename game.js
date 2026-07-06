@@ -38,6 +38,52 @@
   let state = "idle"; // idle | playing | ended
   let timeLeft = GAME_SECONDS;
   let timerHandle = null;
+  let possibleCount = 0; // palabras posibles en el tablero actual
+  let longestRecordThisGame = false; // ¿la palabra más larga récord cayó hoy?
+
+  // ——— Rango de diseño del tablero ———
+  // Ajusta estos números para hacer las partidas más entretenidas: más palabras
+  // mínimas, un rango sano de vocales, y un tope de vocales/consonantes seguidas.
+  const DESIGN = {
+    minWords: 90,        // palabras posibles mínimas (tablero rico)
+    maxWords: Infinity,  // tope opcional
+    minVowels: 6,        // vocales mínimas de las 16 casillas
+    maxVowels: 9,        // vocales máximas
+    maxSameTypeRun: 3,   // máx. vocales o consonantes seguidas (fila/columna)
+    maxAttempts: 60,
+  };
+
+  // ——— Récords personales (localStorage) ———
+  const RECORDS_KEY = "typo-records";
+  function loadRecords() {
+    try { return JSON.parse(localStorage.getItem(RECORDS_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function saveRecords() {
+    try { localStorage.setItem(RECORDS_KEY, JSON.stringify(records)); } catch (e) {}
+  }
+  let records = loadRecords(); // { longestWord, bestScore, bestWords }
+
+  // ——— Tips del ticker: base + récords + definiciones de palabras encontradas ———
+  const BASE_TIPS = [
+    "MÍNIMO 3 LETRAS POR PALABRA",
+    "ARRASTRA LETRAS VECINAS — TAMBIÉN EN DIAGONAL",
+    "PALABRAS MÁS LARGAS = MÁS PUNTOS",
+    "¿ATASCADO? GIRA EL TABLERO CON ↺ ↻",
+    "REPETIR UNA PALABRA NO SUMA PUNTOS",
+    "ENCADENA 6+ LETRAS PARA UN GRAN BONUS",
+  ];
+  const defCache = {}; // palabra(min) -> definición ("" = sin dato / pendiente)
+
+  // ——— Tableros temáticos (palabras secretas) ———
+  const THEMED_CHANCE = 0.35; // prob. de que un tablero salga temático ("de repente")
+  const SECRET_BONUS = 5; // puntos extra por cada palabra secreta encontrada
+  let secretWords = new Set(); // palabras secretas del tablero actual
+  let themeName = "";
+  let secretsFound = 0;
+  const themeBanner = document.getElementById("theme-banner");
+  const themeNameEl = document.getElementById("theme-name");
+  const secretCountEl = document.getElementById("secret-count");
 
   function vibrate(pattern) {
     if (navigator.vibrate) {
@@ -135,9 +181,40 @@
     keyThock(0, { thock: 128 + Math.random() * 22, click: 2300 + Math.random() * 500, gain: 0.4 });
   }
 
+  // Blip electrónico: arpegio ascendente brillante + chispa aguda (síntesis pura)
+  function blip(startIn, freq, dur, type, vol) {
+    if (!audioCtx || muted) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t = audioCtx.currentTime + startIn;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + dur * 0.9);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+  }
+
   function playSuccess() {
-    keyThock(0,     { thock: 155, click: 2700, gain: 0.5 });
-    keyThock(0.055, { thock: 200, click: 3100, gain: 0.42 });
+    // acierto = "power-up" electrónico: tríada ascendente (C6·E6·G6) + brillo
+    blip(0.0,  1047, 0.11, "square",   0.16); // C6
+    blip(0.06, 1319, 0.11, "square",   0.15); // E6
+    blip(0.12, 1568, 0.16, "triangle", 0.18); // G6
+    blip(0.13, 3136, 0.12, "sine",     0.08); // chispa aguda (octava arriba)
+  }
+
+  function playSecret() {
+    // palabra secreta = fanfarria más larga y brillante (arpegio C-E-G-C-E + chispas)
+    blip(0.0,  1047, 0.1,  "square",   0.16); // C6
+    blip(0.05, 1319, 0.1,  "square",   0.16); // E6
+    blip(0.1,  1568, 0.1,  "triangle", 0.17); // G6
+    blip(0.15, 2093, 0.12, "triangle", 0.18); // C7
+    blip(0.21, 2637, 0.18, "sine",     0.16); // E7 (remate)
+    blip(0.22, 4186, 0.14, "sine",     0.07); // chispa muy aguda
   }
 
   function playDup() {
@@ -189,14 +266,27 @@
         cell.className = "cell";
         cell.dataset.r = r;
         cell.dataset.c = c;
-        const legend = document.createElement("span");
-        legend.className = "key-legend";
-        legend.textContent = grid[r][c];
+
+        // Keycap 3D = cuerpo + 4 paredes biseladas (trapecios) + tapa cóncava.
+        const body = document.createElement("div");
+        body.className = "cell__body";
+        for (const side of ["ft", "fb", "fl", "fr"]) {
+          const f = document.createElement("div");
+          f.className = "cell__f cell__" + side;
+          body.appendChild(f);
+        }
+        const face = document.createElement("div");
+        face.className = "cell__face";
         const mark = document.createElement("span");
         mark.className = "key-mark";
         mark.textContent = KEY_MARKS[(r * grid.length + c) % KEY_MARKS.length];
-        cell.appendChild(mark);
-        cell.appendChild(legend);
+        const legend = document.createElement("span");
+        legend.className = "key-legend";
+        legend.textContent = grid[r][c];
+        face.appendChild(mark);
+        face.appendChild(legend);
+        body.appendChild(face);
+        cell.appendChild(body);
         gridEl.appendChild(cell);
       }
     }
@@ -256,7 +346,12 @@
     for (const [word, pts] of foundWords.entries()) {
       const li = document.createElement("li");
       li.dataset.word = word;
-      li.textContent = word;
+      if (secretWords.has(word)) {
+        li.classList.add("secret");
+        li.textContent = "★ " + word;
+      } else {
+        li.textContent = word;
+      }
       const span = document.createElement("span");
       span.className = "pts";
       span.textContent = `+${pts}`;
@@ -273,12 +368,122 @@
 
   function updateStats() {
     scoreEl.textContent = String(totalScore());
-    wordCountEl.textContent = String(foundWords.size);
+    // Contador de palabras: encontradas / posibles en el tablero
+    wordCountEl.textContent = possibleCount
+      ? foundWords.size + "/" + possibleCount
+      : String(foundWords.size);
+    wordCountEl.classList.toggle("has-total", possibleCount > 0);
     timerEl.textContent = formatTime(timeLeft);
     timerEl.classList.toggle(
       "warning",
       state === "playing" && timeLeft <= WARN_SECONDS
     );
+  }
+
+  // Compone el texto del ticker: récords + (en juego) definiciones de las
+  // palabras encontradas; si no, los tips base.
+  const tipsEls = document.querySelectorAll(".tips-text");
+  function tickerStream() {
+    const parts = [];
+    if (records.longestWord)
+      parts.push("RÉCORD PALABRA: " + records.longestWord + " (" + records.longestWord.length + ")");
+    if (records.bestScore) parts.push("MEJOR PUNTAJE: " + records.bestScore);
+    if (records.bestWords) parts.push("MÁS PALABRAS: " + records.bestWords);
+
+    if (state === "playing" && foundWords.size) {
+      for (const w of foundWords.keys()) {
+        const d = defCache[w.toLowerCase()];
+        parts.push(d ? w + " — " + d : w);
+      }
+    } else {
+      parts.push.apply(parts, BASE_TIPS);
+    }
+    return "›  " + parts.join("     •     ") + "     •     ";
+  }
+  function renderTicker() {
+    const s = tickerStream();
+    tipsEls.forEach((el) => (el.textContent = s));
+  }
+
+  // Panel de récords en el resumen final
+  function renderRecords(flags) {
+    flags = flags || {};
+    const recEl = document.getElementById("records");
+    if (!recEl) return;
+    const badge = (on) => (on ? ' <b class="rec-new">¡NUEVO!</b>' : "");
+    const rows = [
+      {
+        label: "Palabra más larga",
+        val: records.longestWord
+          ? records.longestWord + " (" + records.longestWord.length + ")"
+          : "—",
+        isNew: flags.newWord,
+      },
+      { label: "Mejor puntaje", val: records.bestScore || 0, isNew: flags.newScore },
+      { label: "Más palabras", val: records.bestWords || 0, isNew: flags.newWords },
+    ];
+    recEl.innerHTML = rows
+      .map(
+        (r) =>
+          '<div class="rec-row"><span class="rec-label">' +
+          r.label +
+          '</span><span class="rec-val">' +
+          r.val +
+          badge(r.isNew) +
+          "</span></div>"
+      )
+      .join("");
+  }
+
+  // Definición desde el Wikcionario en español (mejor esfuerzo, requiere red).
+  // En el extract de Wikcionario el número del sentido va en su PROPIA línea
+  // (o "2 Astronomía") y la definición viene en la línea siguiente.
+  const SKIP_NEXT = /^(sinónimo|sinónimos|hiperónimo|hipónimo|antónimo|ejemplo|uso|ámbito|relacionado|derivad|\d)/i;
+  function cleanDefinition(extract) {
+    if (!extract) return "";
+    const lines = extract.split("\n").map((s) => s.trim()).filter(Boolean);
+    // 1) primer sentido numerado -> la definición es la línea siguiente
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\d+(\s+.{0,22})?$/.test(lines[i])) {
+        const next = lines[i + 1];
+        if (next && next.length > 4 && !SKIP_NEXT.test(next)) return trimDef(next);
+      }
+    }
+    // 2) forma flexiva: "Forma del femenino plural de dolido"
+    for (const ln of lines) {
+      if (/^forma\b/i.test(ln) && ln.length > 10) return trimDef(ln);
+    }
+    return "";
+  }
+  function trimDef(d) {
+    d = d.replace(/\s+/g, " ").trim();
+    if (d.length > 84) d = d.slice(0, 84).replace(/\s+\S*$/, "") + "…";
+    return d.toUpperCase();
+  }
+  function fetchDefinition(word) {
+    const key = word.toLowerCase();
+    if (key in defCache) return; // ya pedida
+    defCache[key] = ""; // marca como pendiente
+    if (typeof fetch !== "function") return;
+    const url =
+      "https://es.wiktionary.org/w/api.php?action=query&format=json&redirects=1&prop=extracts&explaintext=1&exsectionformat=plain&origin=*&titles=" +
+      encodeURIComponent(key);
+    fetch(url)
+      .then((r) => r.json())
+      .then((data) => {
+        const pages = data && data.query && data.query.pages;
+        let extract = "";
+        if (pages) {
+          const k = Object.keys(pages)[0];
+          extract = (pages[k] && pages[k].extract) || "";
+        }
+        const def = cleanDefinition(extract);
+        if (def) {
+          defCache[key] = def;
+          renderTicker();
+        }
+      })
+      .catch(() => {});
   }
 
   // Fracción del semilado de la celda (desde el centro) que cuenta como acierto.
@@ -365,13 +570,33 @@
       const word = TypoEngine.wordFromPath(grid, path);
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
       if (validWord && !foundWords.has(word)) {
-        const pts = TypoEngine.scoreForLength(word.length);
+        const isSecret = secretWords.has(word);
+        const base = TypoEngine.scoreForLength(word.length);
+        const pts = isSecret ? base + SECRET_BONUS : base;
         foundWords.set(word, pts);
-        vibrate([30, 40, 60]);
-        playSuccess();
-        flashResult(path, "valid");
+        if (isSecret) {
+          // palabra secreta: bono, flash dorado, háptico y fanfarria
+          secretsFound++;
+          updateThemeBanner();
+          vibrate([20, 30, 20, 30, 20, 40, 90]);
+          playSecret();
+          flashResult(path, "secret");
+        } else {
+          vibrate([25, 30, 25, 30, 55]);
+          playSuccess();
+          flashResult(path, "valid");
+        }
         renderFoundList();
         updateStats();
+        // récord: palabra más larga en vivo
+        if (word.length > (records.longestWord ? records.longestWord.length : 0)) {
+          records.longestWord = word;
+          longestRecordThisGame = true;
+          saveRecords();
+        }
+        // definición para el ticker (mejor esfuerzo, online) + refresco
+        fetchDefinition(word);
+        renderTicker();
       } else if (validWord) {
         // Repetida: amarillo, y resalta el chip de la palabra en la lista
         vibrate(20);
@@ -381,6 +606,9 @@
       } else {
         playFail();
         flashResult(path, "invalid");
+        // la lectura de la palabra parpadea en rojo
+        currentWordEl.classList.add("invalid");
+        setTimeout(() => currentWordEl.classList.remove("invalid"), 480);
       }
     }
     path = [];
@@ -458,13 +686,14 @@
     gridWrapEl.classList.remove("blurred");
     timeLeft = GAME_SECONDS;
     foundWords = new Map();
+    longestRecordThisGame = false;
     path = [];
     renderFoundList();
     renderPath();
     updateStats();
     newBoardBtn.disabled = true;
     updateStartBtn();
-    hintEl.textContent = "Arrastra sobre letras adyacentes para formar palabras de al menos 3 letras.";
+    renderTicker(); // al iniciar, el ticker pasará a mostrar definiciones
     timerHandle = setInterval(tick, 1000);
   }
 
@@ -485,6 +714,17 @@
     newBoardBtn.disabled = false;
     updateStartBtn();
 
+    // Récords: puntaje y nº de palabras de esta partida
+    const sc = totalScore();
+    const wc = foundWords.size;
+    const newScore = sc > (records.bestScore || 0);
+    const newWords = wc > (records.bestWords || 0);
+    if (newScore) records.bestScore = sc;
+    if (newWords) records.bestWords = wc;
+    if (newScore || newWords || longestRecordThisGame) saveRecords();
+    renderRecords({ newScore, newWords, newWord: longestRecordThisGame });
+    renderTicker();
+
     const missed = [...solved.entries()]
       .filter(([word]) => !foundWords.has(word))
       .sort((a, b) => b[1] - a[1])
@@ -492,7 +732,7 @@
 
     finalScoreEl.textContent = String(totalScore());
     const words = [...foundWords.keys()];
-    let details = `${foundWords.size} palabras encontradas`;
+    let details = `${foundWords.size} de ${possibleCount} palabras posibles`;
     if (words.length) {
       const maxLen = Math.max(...words.map((w) => w.length));
       const longest = words.filter((w) => w.length === maxLen);
@@ -500,6 +740,39 @@
       details += ` · ${label} (${maxLen} letras): ${longest.join(", ")}`;
     }
     finalDetailsEl.textContent = details;
+
+    // Revelar las palabras secretas del tablero temático
+    const secretsEl = document.getElementById("secrets-reveal");
+    if (secretsEl) {
+      if (secretWords.size) {
+        const items = [...secretWords]
+          .map((w) => {
+            const got = foundWords.has(w);
+            return (
+              '<span class="secret-reveal ' +
+              (got ? "got" : "missed") +
+              '">' +
+              (got ? "★ " : "") +
+              w +
+              "</span>"
+            );
+          })
+          .join("");
+        secretsEl.innerHTML =
+          '<h3>Secretas · ' +
+          themeName +
+          " (" +
+          secretsFound +
+          "/" +
+          secretWords.size +
+          ")</h3><div class=\"secret-reveal-list\">" +
+          items +
+          "</div>";
+        secretsEl.hidden = false;
+      } else {
+        secretsEl.hidden = true;
+      }
+    }
 
     missedListEl.innerHTML = "";
     missed.forEach(([word, pts]) => {
@@ -511,14 +784,54 @@
     summaryOverlay.hidden = false;
   }
 
+  // Construye el tablero: ~THEMED_CHANCE de las veces intenta uno temático con 5
+  // palabras secretas; si no lo logra (o no toca), cae a uno normal.
+  function buildBoard() {
+    const themes = window.TYPO_THEMES;
+    if (themes && themes.length && Math.random() < THEMED_CHANCE) {
+      const theme = themes[Math.floor(Math.random() * themes.length)];
+      const res = TypoEngine.generateThemedGrid(dictionary, theme.words, {
+        secretCount: 5,
+        maxAttempts: 140,
+      });
+      if (res && res.secretWords.length >= 5) {
+        return {
+          grid: res.grid,
+          solved: res.solved,
+          secrets: new Set(res.secretWords),
+          theme: theme.name,
+        };
+      }
+    }
+    const res = TypoEngine.generatePlayableGrid(dictionary, DESIGN);
+    return { grid: res.grid, solved: res.solved, secrets: new Set(), theme: "" };
+  }
+
+  function updateThemeBanner() {
+    if (!themeBanner) return;
+    if (secretWords.size) {
+      themeBanner.hidden = false;
+      if (themeNameEl) themeNameEl.textContent = themeName;
+      if (secretCountEl) secretCountEl.textContent = secretsFound + "/" + secretWords.size;
+      themeBanner.classList.toggle("complete", secretsFound >= secretWords.size);
+    } else {
+      themeBanner.hidden = true;
+    }
+  }
+
   function newBoard() {
-    hintEl.textContent = "Generando tablero...";
+    if (hintEl) hintEl.textContent = "Generando tablero...";
     startBtn.disabled = true;
     newBoardBtn.disabled = true;
     setTimeout(() => {
-      const result = TypoEngine.generatePlayableGrid(dictionary, { minWords: 60, maxAttempts: 20 });
-      grid = result.grid;
-      solved = result.solved;
+      const board = buildBoard();
+      grid = board.grid;
+      solved = board.solved;
+      secretWords = board.secrets;
+      themeName = board.theme;
+      secretsFound = 0;
+      possibleCount = solved.size; // contador de palabras posibles del tablero
+      updateThemeBanner();
       state = "idle";
       gridWrapEl.classList.add("blurred");
       timeLeft = GAME_SECONDS;
@@ -531,7 +844,7 @@
       startBtn.disabled = false;
       newBoardBtn.disabled = false;
       updateStartBtn();
-      hintEl.textContent = "Arrastra sobre letras adyacentes para formar palabras de al menos 3 letras.";
+      renderTicker();
     }, 10);
   }
 
@@ -581,5 +894,22 @@
   });
 
   updateMuteBtn();
+  renderTicker();
   newBoard();
+
+  // ——— Portada / splash: título + carga + botón Comenzar ———
+  const splashEl = document.getElementById("splash");
+  const splashStart = document.getElementById("splash-start");
+  const splashLoader = document.getElementById("splash-loader");
+  if (splashEl && splashStart) {
+    setTimeout(() => {
+      if (splashLoader) splashLoader.hidden = true;
+      splashStart.hidden = false;
+    }, 1300);
+    splashStart.addEventListener("click", () => {
+      initAudio(); // el gesto del usuario desbloquea el audio
+      splashEl.classList.add("hidden");
+      startGame();
+    });
+  }
 })();

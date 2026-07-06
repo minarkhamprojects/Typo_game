@@ -217,20 +217,169 @@ function solveBoardWithDict(grid, dict) {
   return solveBoard(grid, miniTrie);
 }
 
-// Genera un tablero jugable: reintenta si tiene muy pocas palabras posibles.
+const VOWELS = new Set(["A", "E", "I", "O", "U"]);
+
+function countVowels(grid) {
+  let v = 0;
+  for (const row of grid) for (const ch of row) if (VOWELS.has(ch)) v++;
+  return v;
+}
+
+// Racha más larga de casillas del MISMO tipo (vocal o consonante) en línea recta
+// (filas y columnas). Sirve para evitar tableros con muchas consonantes juntas.
+function maxSameTypeRun(grid) {
+  const rows = grid.length,
+    cols = grid[0].length;
+  const isV = (ch) => VOWELS.has(ch);
+  let mx = 1;
+  for (let r = 0; r < rows; r++) {
+    let run = 1;
+    for (let c = 1; c < cols; c++) {
+      run = isV(grid[r][c]) === isV(grid[r][c - 1]) ? run + 1 : 1;
+      if (run > mx) mx = run;
+    }
+  }
+  for (let c = 0; c < cols; c++) {
+    let run = 1;
+    for (let r = 1; r < rows; r++) {
+      run = isV(grid[r][c]) === isV(grid[r - 1][c]) ? run + 1 : 1;
+      if (run > mx) mx = run;
+    }
+  }
+  return mx;
+}
+
+// Genera un tablero jugable respetando el "rango de diseño":
+//   minWords/maxWords     — cuántas palabras posibles debe tener (entretenido)
+//   minVowels/maxVowels   — cuántas vocales hay en las 16 casillas
+//   maxSameTypeRun        — máx. vocales o consonantes seguidas en fila/columna
+// Reintenta hasta maxAttempts; si ninguno cumple minWords, devuelve el mejor
+// candidato visto (para no dejar al jugador sin tablero).
 function generatePlayableGrid(dict, opts = {}) {
   const rand = opts.rand || Math.random;
-  const minWords = opts.minWords ?? 60;
-  const maxAttempts = opts.maxAttempts ?? 20;
-  let grid = generateGrid(rand);
-  let solved = solveBoardWithDict(grid, dict);
-  let attempts = 1;
-  while (solved.size < minWords && attempts < maxAttempts) {
-    grid = generateGrid(rand);
-    solved = solveBoardWithDict(grid, dict);
+  const minWords = opts.minWords ?? 80;
+  const maxWords = opts.maxWords ?? Infinity;
+  const minVowels = opts.minVowels ?? 6;
+  const maxVowels = opts.maxVowels ?? 9;
+  const maxRun = opts.maxSameTypeRun ?? 3;
+  const maxAttempts = opts.maxAttempts ?? 60;
+
+  let best = null;
+  let attempts = 0;
+  while (attempts < maxAttempts) {
     attempts++;
+    const grid = generateGrid(rand);
+    const v = countVowels(grid);
+    if (v < minVowels || v > maxVowels) continue;
+    if (maxSameTypeRun(grid) > maxRun) continue;
+    const solved = solveBoardWithDict(grid, dict);
+    if (!best || solved.size > best.solved.size) best = { grid, solved, attempts };
+    if (solved.size >= minWords && solved.size <= maxWords) {
+      return { grid, solved, attempts };
+    }
   }
-  return { grid, solved, attempts };
+  if (best) return best;
+  const grid = generateGrid(rand);
+  return { grid, solved: solveBoardWithDict(grid, dict), attempts };
+}
+
+// ——— Tableros temáticos: colocar palabras concretas en la cuadrícula ———
+
+function shuffleInPlace(arr, rand) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    const t = arr[i];
+    arr[i] = arr[j];
+    arr[j] = t;
+  }
+  return arr;
+}
+
+// Coloca `word` como un camino Boggle (8-adyacente, sin reusar celda dentro de la
+// misma palabra). Puede pasar por celdas ya ocupadas si la letra coincide
+// (palabras que comparten celdas). Devuelve el camino [[r,c],…] o null.
+function placeWordInGrid(grid, word, rand = Math.random) {
+  const size = grid.length;
+
+  function dfs(i, r, c, used, path) {
+    const cell = grid[r][c];
+    if (cell !== "" && cell !== word[i]) return false;
+    used[r][c] = true;
+    path.push([r, c]);
+    if (i === word.length - 1) return true;
+    const dirs = shuffleInPlace(NEIGHBOR_OFFSETS.slice(), rand);
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+      if (used[nr][nc]) continue;
+      if (dfs(i + 1, nr, nc, used, path)) return true;
+    }
+    used[r][c] = false;
+    path.pop();
+    return false;
+  }
+
+  const starts = [];
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      if (grid[r][c] === "" || grid[r][c] === word[0]) starts.push([r, c]);
+  shuffleInPlace(starts, rand);
+
+  for (const [sr, sc] of starts) {
+    const used = Array.from({ length: size }, () => new Array(size).fill(false));
+    const path = [];
+    if (dfs(0, sr, sc, used, path)) return path;
+  }
+  return null;
+}
+
+function fillEmptyCells(grid, rand = Math.random) {
+  const pool = buildLetterPool();
+  for (let r = 0; r < grid.length; r++)
+    for (let c = 0; c < grid[r].length; c++)
+      if (grid[r][c] === "") grid[r][c] = pickLetter(pool, rand);
+}
+
+// Genera un tablero que contiene al menos `secretCount` palabras del tema.
+// Coloca palabras (cortas primero) hasta llegar a la meta, rellena el resto y
+// resuelve. Devuelve { grid, secretWords, solved } o null si no lo logró.
+function generateThemedGrid(dict, candidateWords, opts = {}) {
+  const rand = opts.rand || Math.random;
+  const size = opts.size || GRID_SIZE;
+  const target = opts.secretCount || 5;
+  const maxAttempts = opts.maxAttempts || 140;
+
+  const pool = candidateWords.filter(
+    (w) => w.length >= MIN_WORD_LEN && w.length <= size * size && dict.has(w)
+  );
+  if (pool.length < target) return null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const grid = Array.from({ length: size }, () => new Array(size).fill(""));
+    const words = shuffleInPlace(pool.slice(), rand).sort((a, b) => a.length - b.length);
+    const placed = [];
+    for (const w of words) {
+      if (placed.length >= target) break;
+      if (placed.some((p) => p.word === w)) continue;
+      const path = placeWordInGrid(grid, w, rand);
+      if (path) {
+        for (let k = 0; k < path.length; k++) grid[path[k][0]][path[k][1]] = w[k];
+        placed.push({ word: w, path });
+      }
+    }
+    if (placed.length >= target) {
+      fillEmptyCells(grid, rand);
+      const solved = solveBoardWithDict(grid, dict);
+      return {
+        grid,
+        secretWords: placed.slice(0, target).map((p) => p.word),
+        solved,
+        attempts: attempt + 1,
+      };
+    }
+  }
+  return null;
 }
 
 const api = {
@@ -247,6 +396,10 @@ const api = {
   solveBoard,
   solveBoardWithDict,
   generatePlayableGrid,
+  countVowels,
+  maxSameTypeRun,
+  placeWordInGrid,
+  generateThemedGrid,
 };
 
 if (typeof module !== "undefined") module.exports = api;
