@@ -68,3 +68,9 @@
 - [x] Marcas miniatura de las teclas en rojo fijo (#D8342E), desacopladas del acento
 - [x] Botón principal con relieve de keycap 3D rojo; cambia de función:
       Comenzar → Terminar (corta la partida) → Jugar de nuevo
+- [x] Keycap 3D según guía: cuerpo con degradado radial + tapa cóncava (::before, más
+      recortada abajo) + faldón doble; estados (arrastre oscuro, acierto rojo con glow,
+      inválida, repetida ámbar) con override del cuerpo y de la tapa
+- [x] Distribución de la guía: pantalla LCD ámbar "Typo", marcadores como teclas crema,
+      botón ☰ (abre Cómo jugar), tablero sin placa con gap ~7px, y barra inferior
+      ↺ · Comenzar · Cambiar tablero · Son · ↻ (giros movidos a la barra inferior)

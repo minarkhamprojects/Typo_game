@@ -10,6 +10,9 @@
   const muteBtn = document.getElementById("mute-btn");
   const rotateLeftBtn = document.getElementById("rotate-left");
   const rotateRightBtn = document.getElementById("rotate-right");
+  const menuBtn = document.getElementById("menu-btn");
+  const helpOverlay = document.getElementById("help-overlay");
+  const helpCloseBtn = document.getElementById("help-close-btn");
   const hapticSwitch = document.getElementById("haptic-switch");
   const timerEl = document.getElementById("timer");
   const scoreEl = document.getElementById("score");
@@ -518,6 +521,15 @@
   });
   rotateLeftBtn.addEventListener("click", () => rotateBoard(-1));
   rotateRightBtn.addEventListener("click", () => rotateBoard(1));
+  menuBtn.addEventListener("click", () => {
+    helpOverlay.hidden = false;
+  });
+  helpCloseBtn.addEventListener("click", () => {
+    helpOverlay.hidden = true;
+  });
+  helpOverlay.addEventListener("click", (e) => {
+    if (e.target === helpOverlay) helpOverlay.hidden = true;
+  });
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && audioCtx && audioCtx.state === "suspended") {
       audioCtx.resume();

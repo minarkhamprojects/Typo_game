@@ -10,21 +10,20 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <h1>Typo</h1>
-      <div class="stats">
-        <div class="stat">
-          <span class="stat-label">Tiempo</span>
-          <span class="stat-value" id="timer">1:30</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Puntos</span>
-          <span class="stat-value" id="score">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Palabras</span>
-          <span class="stat-value" id="word-count">0</span>
-        </div>
+      <div class="lcd">Typo</div>
+      <div class="stat-key">
+        <span class="stat-label">Tiempo</span>
+        <span class="stat-value" id="timer">1:30</span>
       </div>
+      <div class="stat-key">
+        <span class="stat-label">Puntos</span>
+        <span class="stat-value" id="score">0</span>
+      </div>
+      <div class="stat-key">
+        <span class="stat-label">Palabras</span>
+        <span class="stat-value" id="word-count">0</span>
+      </div>
+      <button id="menu-btn" class="key-btn sq" aria-label="Menú / cómo jugar">☰</button>
     </header>
 
     <main class="board-area">
@@ -33,13 +32,13 @@
         <div class="grid" id="grid" aria-label="Tablero de letras"></div>
         <svg id="path-overlay" aria-hidden="true"><polyline id="path-line" points="" /></svg>
         <div class="blur-hint"><span>Pulsa <strong>Comenzar</strong></span></div>
-        <button id="rotate-left" class="rotate-side rotate-side-left" aria-label="Girar el tablero a la izquierda">⟲</button>
-        <button id="rotate-right" class="rotate-side rotate-side-right" aria-label="Girar el tablero a la derecha">⟳</button>
       </div>
       <div class="controls">
-        <button id="start-btn" class="btn btn-primary">Comenzar</button>
-        <button id="new-board-btn" class="btn">Nuevo tablero</button>
-        <button id="mute-btn" class="btn btn-icon" aria-label="Activar o silenciar sonido">🔊</button>
+        <button id="rotate-left" class="key-btn sq" aria-label="Girar el tablero a la izquierda">↺</button>
+        <button id="start-btn" class="btn btn-primary wide">Comenzar</button>
+        <button id="new-board-btn" class="btn wide">Cambiar tablero</button>
+        <button id="mute-btn" class="key-btn sq" aria-label="Activar o silenciar sonido">🔊</button>
+        <button id="rotate-right" class="key-btn sq" aria-label="Girar el tablero a la derecha">↻</button>
       </div>
       <!-- Switch nativo oculto: en iOS 17.4+ togglearlo produce un tick háptico
            (best-effort; navigator.vibrate no existe en iOS Safari) -->
@@ -63,6 +62,23 @@
         <ul class="missed-list" id="missed-list"></ul>
       </div>
       <button id="play-again-btn" class="btn btn-primary">Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="help-overlay" hidden>
+    <div class="modal">
+      <h2>Cómo jugar</h2>
+      <ul class="help-list">
+        <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras.</li>
+        <li>El veredicto aparece <strong>al soltar</strong>: verde = válida, ámbar = repetida, rojo = no existe.</li>
+        <li>Botones <strong>↺ / ↻</strong>: giran el tablero; <strong>Cambiar tablero</strong>: genera otro; <strong>🔊</strong>: silencia.</li>
+        <li>Tienes <strong>1:30</strong>; en los últimos 10 s el reloj avisa.</li>
+      </ul>
+      <h3>Puntaje por longitud</h3>
+      <ul class="help-list">
+        <li>3–4 letras: 1 · 5: 2 · 6: 3 · 7: 5 · 8: 11 · 9+: 11 + 3 por letra extra</li>
+      </ul>
+      <button id="help-close-btn" class="btn btn-primary">Entendido</button>
     </div>
   </div>
 
