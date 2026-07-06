@@ -3,7 +3,7 @@
    reservado para el error. */
 
 :root {
-  --accent: #24e657;
+  --accent: #2fa857;
   --error: #e23b31;
   /* Opacidad de la base del teclado (0 = totalmente transparente / cristal,
      1 = placa crema sólida). Súbela a 1 si prefieres la placa opaca. */
@@ -112,7 +112,9 @@ body {
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 1rem;
+  /* respeta el notch / Dynamic Island / barra de estado del iPhone */
+  padding: calc(0.8rem + env(safe-area-inset-top)) 1rem
+    calc(0.8rem + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -155,16 +157,16 @@ body {
   font-size: 1.6rem;
   line-height: 0.9;
   letter-spacing: -0.01em;
-  color: #31ff66;
-  text-shadow: 0 0 9px rgba(50, 255, 110, 0.7), 0 0 2px rgba(50, 255, 110, 0.9);
+  color: #3cbf66;
+  text-shadow: 0 0 9px rgba(61, 191, 103, 0.7), 0 0 2px rgba(61, 191, 103, 0.9);
 }
 
 .lcd-cursor {
   width: 10px;
   height: 21px;
   border-radius: 1px;
-  background: #31ff66;
-  box-shadow: 0 0 9px rgba(50, 255, 110, 0.8);
+  background: #3cbf66;
+  box-shadow: 0 0 9px rgba(61, 191, 103, 0.8);
   animation: lcdCursor 1.05s steps(1) infinite;
 }
 
@@ -289,7 +291,7 @@ body {
   /* veladura verde-teal para que el tablero borroso combine con el juego */
   background: radial-gradient(
     120% 105% at 50% 42%,
-    rgba(36, 230, 87, 0.16) 0%,
+    rgba(47, 168, 87, 0.16) 0%,
     rgba(18, 58, 42, 0.36) 100%
   );
 }
@@ -482,18 +484,18 @@ body {
 .cell.valid .cell__face {
   background: radial-gradient(
       58% 52% at 50% 50%,
-      rgba(36, 230, 87, 0.6) 0%,
-      rgba(36, 230, 87, 0.12) 48%,
+      rgba(47, 168, 87, 0.6) 0%,
+      rgba(47, 168, 87, 0.12) 48%,
       transparent 72%
     ),
     radial-gradient(120% 105% at 50% 30%, #f6f0e4 0%, #eae2d3 56%, #d3c9b3 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -3px 6px rgba(150, 135, 100, 0.35), 0 0 12px rgba(36, 230, 87, 0.4);
+    inset 0 -3px 6px rgba(150, 135, 100, 0.35), 0 0 12px rgba(47, 168, 87, 0.4);
 }
 .cell.valid .key-legend {
-  color: #17c94e;
-  text-shadow: 0 0 8px rgba(36, 230, 87, 0.95),
-    0 0 18px rgba(36, 230, 87, 0.6), 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #1f9e48;
+  text-shadow: 0 0 8px rgba(47, 168, 87, 0.95),
+    0 0 18px rgba(47, 168, 87, 0.6), 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 /* Inválida: rojo error + shake (no salta, solo vibra) */
@@ -738,8 +740,8 @@ body {
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 0.07em;
-  color: #31ff66;
-  text-shadow: 0 0 8px rgba(50, 255, 110, 0.6);
+  color: #3cbf66;
+  text-shadow: 0 0 8px rgba(61, 191, 103, 0.6);
 }
 
 @keyframes tipsMarquee {
@@ -773,8 +775,8 @@ body {
   line-height: 1;
   letter-spacing: 0.03em;
   margin: 0 0 0.55rem;
-  color: #8affab;
-  text-shadow: 0 0 8px rgba(50, 255, 110, 0.3);
+  color: #8ecfa0;
+  text-shadow: 0 0 8px rgba(61, 191, 103, 0.3);
 }
 
 .found-list {
@@ -802,9 +804,9 @@ body {
   font-size: 1.25rem;
   line-height: 1.15;
   letter-spacing: 0.02em;
-  color: #6bff97;
+  color: #7cc78f;
   white-space: nowrap;
-  text-shadow: 0 0 6px rgba(50, 255, 110, 0.28);
+  text-shadow: 0 0 6px rgba(61, 191, 103, 0.28);
 }
 
 .found-list li .pts {
@@ -842,7 +844,7 @@ body {
 /* Panel tipo pantalla del juego: verde-teal oscuro con borde y glow de acento */
 .modal {
   background: linear-gradient(160deg, rgba(22, 44, 33, 0.97), rgba(9, 19, 14, 0.98));
-  border: 1px solid rgba(36, 230, 87, 0.28);
+  border: 1px solid rgba(47, 168, 87, 0.28);
   border-radius: 18px;
   padding: 1.2rem 1.15rem;
   max-width: 26rem;
@@ -852,7 +854,7 @@ body {
   text-align: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 0 0 1px rgba(0, 0, 0, 0.5), 0 24px 54px rgba(0, 0, 0, 0.62),
-    0 0 40px rgba(36, 230, 87, 0.12);
+    0 0 40px rgba(47, 168, 87, 0.12);
 }
 
 .modal h2 {
@@ -863,8 +865,8 @@ body {
   line-height: 1;
   letter-spacing: 0.04em;
   text-align: center;
-  color: #8affab;
-  text-shadow: 0 0 10px rgba(50, 255, 110, 0.45);
+  color: #8ecfa0;
+  text-shadow: 0 0 10px rgba(61, 191, 103, 0.45);
 }
 
 .modal h3 {
@@ -872,7 +874,7 @@ body {
   font-weight: 400;
   font-size: 1.05rem;
   letter-spacing: 0.03em;
-  color: #79ffa6;
+  color: #7fc99a;
   text-align: center;
   margin: 0.7rem 0 0.35rem;
 }
@@ -977,7 +979,7 @@ body {
 .score-table td:first-child {
   text-align: right;
   color: var(--text);
-  border-right: 1px solid rgba(36, 230, 87, 0.25);
+  border-right: 1px solid rgba(47, 168, 87, 0.25);
 }
 
 .score-table td:last-child {
@@ -1039,8 +1041,8 @@ body {
   gap: 0.3rem;
   padding: 0.7rem 0.85rem;
   border-radius: 12px;
-  background: linear-gradient(160deg, rgba(36, 230, 87, 0.08), rgba(20, 30, 24, 0.6));
-  border: 1px solid rgba(36, 230, 87, 0.22);
+  background: linear-gradient(160deg, rgba(47, 168, 87, 0.08), rgba(20, 30, 24, 0.6));
+  border: 1px solid rgba(47, 168, 87, 0.22);
 }
 
 .rec-row {
@@ -1059,7 +1061,7 @@ body {
   font-family: var(--font-retro);
   font-size: 1.35rem;
   line-height: 1;
-  color: #6bff97;
+  color: #7cc78f;
   text-align: right;
 }
 
@@ -1117,7 +1119,7 @@ body {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #6bff97;
+  color: #7cc78f;
 }
 
 .theme-secret b {
@@ -1129,9 +1131,9 @@ body {
 }
 
 .theme-banner.complete {
-  border-color: rgba(36, 230, 87, 0.55);
+  border-color: rgba(47, 168, 87, 0.55);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 24px rgba(36, 230, 87, 0.28);
+    0 0 24px rgba(47, 168, 87, 0.28);
 }
 
 .theme-banner.complete .theme-secret b {
@@ -1245,11 +1247,11 @@ body {
   color: transparent;
   background-image: radial-gradient(circle, rgba(2, 12, 7, 0.75) 0.9px, transparent 1.5px),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0 1px, transparent 1px 3px),
-    linear-gradient(#31ff66, #31ff66);
+    linear-gradient(#3cbf66, #3cbf66);
   background-size: 4px 4px, 100% 3px, 100% 100%;
   -webkit-background-clip: text;
   background-clip: text;
-  text-shadow: 0 0 9px rgba(50, 255, 110, 0.85), 0 0 24px rgba(60, 220, 130, 0.55),
+  text-shadow: 0 0 9px rgba(61, 191, 103, 0.85), 0 0 24px rgba(60, 220, 130, 0.55),
     0 0 44px rgba(40, 200, 110, 0.4);
   animation: crtFlicker 4.5s infinite;
 }
@@ -1266,8 +1268,8 @@ body {
   width: 0.13em;
   height: 0.86em;
   border-radius: 2px;
-  background: #31ff66;
-  box-shadow: 0 0 14px rgba(50, 255, 110, 0.8);
+  background: #3cbf66;
+  box-shadow: 0 0 14px rgba(61, 191, 103, 0.8);
   animation: lcdCursor 1.05s steps(1) infinite;
 }
 
@@ -1278,7 +1280,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #79ffa6;
+  color: #7fc99a;
 }
 
 .splash-loader {
@@ -1288,8 +1290,8 @@ body {
   margin-top: 0.4rem;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(36, 230, 87, 0.12);
-  border: 1px solid rgba(36, 230, 87, 0.25);
+  background: rgba(47, 168, 87, 0.12);
+  border: 1px solid rgba(47, 168, 87, 0.25);
 }
 
 .splash-loader[hidden] {
@@ -1301,8 +1303,8 @@ body {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0ea63a, #31ff66);
-  box-shadow: 0 0 12px rgba(50, 255, 110, 0.6);
+  background: linear-gradient(90deg, #0e7a34, #3cbf66);
+  box-shadow: 0 0 12px rgba(61, 191, 103, 0.6);
   animation: splashLoad 1.3s ease forwards;
 }
 
