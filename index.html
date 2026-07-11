@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css?v=contra2" />
+<link rel="stylesheet" href="style.css?v=contra3" />
 </head>
 <body>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
@@ -211,8 +211,7 @@
       <div class="menu-instr" id="instr-contrarreloj" hidden>
         <ul class="help-list">
           <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras, como en el clásico.</li>
-          <li>Arrancas con <strong>1:30</strong>, pero <strong>cada palabra nueva suma tiempo</strong> al reloj.</li>
-          <li>Palabra común = <strong>+1 s</strong>; palabras con letras raras (Z, X, J, Ñ…) suman <strong>varios segundos</strong>.</li>
+          <li>Arrancas con <strong>1:30</strong> y <strong>cada palabra nueva suma +1 s</strong> al reloj.</li>
           <li>Sobrevive lo más posible: cuando el reloj llega a 0, termina la partida.</li>
         </ul>
         <h3>Controles</h3>
@@ -230,9 +229,8 @@
         <h3>Puntaje y tiempo</h3>
         <table class="score-table">
           <tbody>
+            <tr><td>Cada palabra encontrada</td><td>+1 s al reloj</td></tr>
             <tr><td>Puntos por palabra</td><td>suma del valor de sus letras</td></tr>
-            <tr><td>Letra común (A, E, S…)</td><td>1 punto · +1 s</td></tr>
-            <tr><td>Letra rara (Z, X, J…)</td><td>hasta 10 puntos · +varios s</td></tr>
           </tbody>
         </table>
       </div>
@@ -243,9 +241,9 @@
 
   <script src="pcbfx.js"></script>
   <script src="themes.js"></script>
-  <script src="trivia.js?v=contra2"></script>
+  <script src="trivia.js?v=contra3"></script>
   <script src="words_es.js"></script>
-  <script src="engine.js?v=contra2"></script>
-  <script src="game.js?v=contra2"></script>
+  <script src="engine.js?v=contra3"></script>
+  <script src="game.js?v=contra3"></script>
 </body>
 </html>

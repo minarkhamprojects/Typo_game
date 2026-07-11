@@ -96,6 +96,7 @@
 
   // ——— Modo Contrarreloj: arranca en 1:30 y cada palabra suma tiempo ———
   const CONTRA_START_SECONDS = 90;  // 1:30 igual que el clásico
+  const CONTRA_TIME_PER_WORD = 1;   // cada palabra suma exactamente 1 s
   let contraElapsed = 0;            // segundos que llevas vivo esta partida
   let contraSecondsGained = 0;      // total de segundos que sumaron tus palabras
   const CONTRA_RECORDS_KEY = "typo-contra-records";
@@ -688,12 +689,11 @@
         }
         // "+N" flotante con el puntaje ganado (sube hacia el jugador).
         showScorePop(pts);
-        // Contrarreloj: la palabra suma tiempo (piso +1 s + bono por dificultad).
+        // Contrarreloj: cada palabra suma exactamente 1 s (ritmo ágil).
         if (gameMode === "contrarreloj") {
-          const add = TypoEngine.timeBonusForWord(word);
-          timeLeft += add;
-          contraSecondsGained += add;
-          showTimeGain(add);
+          timeLeft += CONTRA_TIME_PER_WORD;
+          contraSecondsGained += CONTRA_TIME_PER_WORD;
+          showTimeGain(CONTRA_TIME_PER_WORD);
         }
         renderFoundList();
         updateStats();

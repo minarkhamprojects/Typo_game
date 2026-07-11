@@ -166,13 +166,6 @@ function scoreForWord(word) {
   return s;
 }
 
-// Segundos que otorga una palabra en modo Contrarreloj: piso de 1 s (palabra de
-// puras letras comunes) + 1 s por cada punto de rareza por encima de lo común.
-// Equivale a 1 + (score - longitud). Palabra común → +1 s; palabra rara → mucho más.
-function timeBonusForWord(word) {
-  return Math.max(1, 1 + scoreForWord(word) - word.length);
-}
-
 const NEIGHBOR_OFFSETS = [
   [-1, -1], [-1, 0], [-1, 1],
   [0, -1], [0, 1],
@@ -424,7 +417,6 @@ const api = {
   LETTER_VALUES,
   letterValue,
   scoreForWord,
-  timeBonusForWord,
   isValidPath,
   wordFromPath,
   solveBoard,
