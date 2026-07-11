@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css?v=trivia" />
+<link rel="stylesheet" href="style.css?v=contra2" />
 </head>
 <body>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
@@ -126,6 +126,10 @@
           <span class="mode-name">Trivia</span>
           <span class="mode-desc">Adivina por la pista</span>
         </button>
+        <button type="button" class="mode-btn" data-mode="contrarreloj">
+          <span class="mode-name">Contrarreloj</span>
+          <span class="mode-desc">Cada palabra suma tiempo</span>
+        </button>
       </div>
       <h3 class="records-title">Tus récords · <span id="menu-mode-name">Clásico</span></h3>
       <div class="records" id="menu-records"></div>
@@ -155,15 +159,17 @@
             <span class="ctrl-desc">Activa o silencia el sonido</span>
           </li>
         </ul>
-        <h3>Puntaje por longitud</h3>
+        <h3>Puntaje por dificultad</h3>
+        <p class="score-note">Cada palabra vale la <strong>suma del valor de sus letras</strong>. El valor va en la esquina de cada tecla.</p>
         <table class="score-table">
           <tbody>
-            <tr><td>3–4 letras</td><td>1 punto</td></tr>
-            <tr><td>5 letras</td><td>2 puntos</td></tr>
-            <tr><td>6 letras</td><td>3 puntos</td></tr>
-            <tr><td>7 letras</td><td>5 puntos</td></tr>
-            <tr><td>8 letras</td><td>11 puntos</td></tr>
-            <tr><td>9 o más</td><td>11 + 3 por letra extra</td></tr>
+            <tr><td>A, E, O, I, S, N, R, U, L, T</td><td>1 punto</td></tr>
+            <tr><td>D, G</td><td>2 puntos</td></tr>
+            <tr><td>C, B, M, P</td><td>3 puntos</td></tr>
+            <tr><td>H, F, V, Y</td><td>4 puntos</td></tr>
+            <tr><td>Q, J</td><td>5 puntos</td></tr>
+            <tr><td>Ñ, X, K, W</td><td>8 puntos</td></tr>
+            <tr><td>Z</td><td>10 puntos</td></tr>
           </tbody>
         </table>
       </div>
@@ -195,8 +201,38 @@
         <h3>Puntaje</h3>
         <table class="score-table">
           <tbody>
-            <tr><td>Cada respuesta</td><td>según su longitud</td></tr>
+            <tr><td>Cada respuesta</td><td>según el valor de sus letras</td></tr>
             <tr><td>Todas las de una pista</td><td>bono +8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Instrucciones del modo CONTRARRELOJ -->
+      <div class="menu-instr" id="instr-contrarreloj" hidden>
+        <ul class="help-list">
+          <li><strong>Arrastra</strong> sobre letras adyacentes (incluidas diagonales) para formar palabras de 3+ letras, como en el clásico.</li>
+          <li>Arrancas con <strong>1:30</strong>, pero <strong>cada palabra nueva suma tiempo</strong> al reloj.</li>
+          <li>Palabra común = <strong>+1 s</strong>; palabras con letras raras (Z, X, J, Ñ…) suman <strong>varios segundos</strong>.</li>
+          <li>Sobrevive lo más posible: cuando el reloj llega a 0, termina la partida.</li>
+        </ul>
+        <h3>Controles</h3>
+        <ul class="controls-legend">
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9c-2.5 0-4.9 1-6.7 2.7L3 8" /><path d="M3 3v5h5" /></svg></span>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.9 1 6.7 2.7L21 8" /><path d="M21 3v5h-5" /></svg></span>
+            <span class="ctrl-desc">Giran el tablero</span>
+          </li>
+          <li>
+            <span class="ctrl-ico"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.5 9a4 4 0 0 1 0 6" /><path d="M18 6.5a8 8 0 0 1 0 11" /></g></svg></span>
+            <span class="ctrl-desc">Activa o silencia el sonido</span>
+          </li>
+        </ul>
+        <h3>Puntaje y tiempo</h3>
+        <table class="score-table">
+          <tbody>
+            <tr><td>Puntos por palabra</td><td>suma del valor de sus letras</td></tr>
+            <tr><td>Letra común (A, E, S…)</td><td>1 punto · +1 s</td></tr>
+            <tr><td>Letra rara (Z, X, J…)</td><td>hasta 10 puntos · +varios s</td></tr>
           </tbody>
         </table>
       </div>
@@ -207,9 +243,9 @@
 
   <script src="pcbfx.js"></script>
   <script src="themes.js"></script>
-  <script src="trivia.js?v=trivia"></script>
+  <script src="trivia.js?v=contra2"></script>
   <script src="words_es.js"></script>
-  <script src="engine.js?v=trivia"></script>
-  <script src="game.js?v=trivia"></script>
+  <script src="engine.js?v=contra2"></script>
+  <script src="game.js?v=contra2"></script>
 </body>
 </html>

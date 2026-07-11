@@ -185,6 +185,7 @@ body {
 .stat-key {
   flex: 1 1 0;
   min-width: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -240,6 +241,27 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.85rem;
+  position: relative;
+}
+
+/* "+N" flotante (solo puntaje) que sube y se desvanece hacia el jugador */
+.score-pop {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0) scale(1);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.7rem;
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent), transparent 35%);
+  pointer-events: none;
+  z-index: 6;
+  animation: scorePop 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@keyframes scorePop {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.7); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1.18); }
+  100% { opacity: 0; transform: translate(-50%, -40px) scale(1.7); }
 }
 
 /* Lectura de la palabra en curso (readout limpio, Archivo con tracking) */
@@ -427,15 +449,16 @@ body {
   pointer-events: none;
 }
 
-/* Marca roja fija arriba-izquierda (solo en teclas crema en reposo) */
+/* Valor de la letra (dificultad), estilo ficha: esquina inferior derecha */
 .key-mark {
   position: absolute;
-  top: 5px;
-  left: 8px;
+  right: 7px;
+  bottom: 5px;
   font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(216, 52, 46, 0.9);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(28, 46, 36, 0.62);
   pointer-events: none;
 }
 
@@ -1469,4 +1492,50 @@ body {
   color: #cf9090;
   text-decoration: line-through;
   opacity: 0.85;
+}
+
+/* Contrarreloj: flash "+Ns" verde saltando desde el reloj */
+.time-gain {
+  position: absolute;
+  top: -2px;
+  right: 3px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.72rem;
+  color: var(--accent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--accent), transparent 40%);
+  pointer-events: none;
+  animation: timeGain 0.85s ease-out forwards;
+}
+@keyframes timeGain {
+  0% { opacity: 0; transform: translateY(4px) scale(0.9); }
+  20% { opacity: 1; transform: translateY(-2px) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-16px) scale(1); }
+}
+.stat-value.gain {
+  color: #1f6b3a;
+  transition: color 0.12s ease;
+}
+
+/* nota bajo el título de puntaje en el menú */
+.score-note {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin: 0 0 0.4rem;
+  line-height: 1.35;
+}
+
+/* Selector de modo con 3 opciones: que "Contrarreloj" no desborde */
+.mode-select {
+  max-width: 25rem;
+}
+.mode-btn {
+  padding: 0.55rem 0.3rem;
+}
+.mode-btn .mode-name {
+  font-size: 0.82rem;
+}
+.mode-btn .mode-desc {
+  font-size: 0.56rem;
+  line-height: 1.15;
 }

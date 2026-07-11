@@ -88,9 +88,27 @@
   const bannerLabelEl = document.getElementById("banner-label");
   const wordLabelEl = document.getElementById("word-label");
 
-  // ——— Modo de juego: clásico | trivia ———
+  // ——— Modo de juego: clásico | trivia | contrarreloj ———
   const MODE_KEY = "typo-mode";
-  let gameMode = localStorage.getItem(MODE_KEY) === "trivia" ? "trivia" : "clasico";
+  const VALID_MODES = ["clasico", "trivia", "contrarreloj"];
+  const savedMode = localStorage.getItem(MODE_KEY);
+  let gameMode = VALID_MODES.includes(savedMode) ? savedMode : "clasico";
+
+  // ——— Modo Contrarreloj: arranca en 1:30 y cada palabra suma tiempo ———
+  const CONTRA_START_SECONDS = 90;  // 1:30 igual que el clásico
+  let contraElapsed = 0;            // segundos que llevas vivo esta partida
+  let contraSecondsGained = 0;      // total de segundos que sumaron tus palabras
+  const CONTRA_RECORDS_KEY = "typo-contra-records";
+  function loadContraRecords() {
+    try { return JSON.parse(localStorage.getItem(CONTRA_RECORDS_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function saveContraRecords() {
+    try { localStorage.setItem(CONTRA_RECORDS_KEY, JSON.stringify(contraRecords)); }
+    catch (e) {}
+  }
+  let contraRecords = loadContraRecords(); // { longestWord, bestScore, bestWords, bestTime }
+
   const TRIVIA_SECONDS = 120;       // reloj global de la partida trivia
   const QUESTION_SECONDS = 15;      // tiempo por pregunta
   const TRIVIA_COMPLETE_BONUS = 8;  // bono por encontrar todas las respuestas
@@ -312,7 +330,6 @@
   }
 
   // Marcas rojas secundarias de las teclas (decorativas, estilo teclado retro)
-  const KEY_MARKS = ["!", "·", "'", "º", ";", ":", "¿", "¡", "+", "*", "-", ",", ".", "%", '"', "&"];
 
   function renderGrid() {
     gridEl.innerHTML = "";
@@ -335,7 +352,8 @@
         face.className = "cell__face";
         const mark = document.createElement("span");
         mark.className = "key-mark";
-        mark.textContent = KEY_MARKS[(r * grid.length + c) % KEY_MARKS.length];
+        // Esquina = valor de la letra (dificultad): común = 1, rara = más.
+        mark.textContent = String(TypoEngine.letterValue(grid[r][c]));
         const legend = document.createElement("span");
         legend.className = "key-legend";
         legend.textContent = grid[r][c];
@@ -478,22 +496,24 @@
   }
 
   // Panel de récords en el resumen final
-  function renderRecords(flags) {
+  function renderRecords(flags, recObj, extraRows) {
     flags = flags || {};
+    recObj = recObj || records;
     const recEl = document.getElementById("records");
     if (!recEl) return;
     const badge = (on) => (on ? ' <b class="rec-new">¡NUEVO!</b>' : "");
     const rows = [
       {
         label: "Palabra más larga",
-        val: records.longestWord
-          ? records.longestWord + " (" + records.longestWord.length + ")"
+        val: recObj.longestWord
+          ? recObj.longestWord + " (" + recObj.longestWord.length + ")"
           : "—",
         isNew: flags.newWord,
       },
-      { label: "Mejor puntaje", val: records.bestScore || 0, isNew: flags.newScore },
-      { label: "Más palabras", val: records.bestWords || 0, isNew: flags.newWords },
+      { label: "Mejor puntaje", val: recObj.bestScore || 0, isNew: flags.newScore },
+      { label: "Más palabras", val: recObj.bestWords || 0, isNew: flags.newWords },
     ];
+    if (extraRows) rows.push(...extraRows);
     recEl.innerHTML = rows
       .map(
         (r) =>
@@ -649,7 +669,7 @@
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
       if (validWord && !foundWords.has(word)) {
         const isSecret = secretWords.has(word);
-        const base = TypoEngine.scoreForLength(word.length);
+        const base = TypoEngine.scoreForWord(word);
         const pts = isSecret ? base + SECRET_BONUS : base;
         foundWords.set(word, pts);
         if (isSecret) {
@@ -666,13 +686,24 @@
           playSuccess();
           flashResult(path, "valid");
         }
+        // "+N" flotante con el puntaje ganado (sube hacia el jugador).
+        showScorePop(pts);
+        // Contrarreloj: la palabra suma tiempo (piso +1 s + bono por dificultad).
+        if (gameMode === "contrarreloj") {
+          const add = TypoEngine.timeBonusForWord(word);
+          timeLeft += add;
+          contraSecondsGained += add;
+          showTimeGain(add);
+        }
         renderFoundList();
         updateStats();
-        // récord: palabra más larga en vivo
-        if (word.length > (records.longestWord ? records.longestWord.length : 0)) {
-          records.longestWord = word;
+        // récord: palabra más larga en vivo (según el modo activo)
+        const recObj = gameMode === "contrarreloj" ? contraRecords : records;
+        if (word.length > (recObj.longestWord ? recObj.longestWord.length : 0)) {
+          recObj.longestWord = word;
           longestRecordThisGame = true;
-          saveRecords();
+          if (gameMode === "contrarreloj") saveContraRecords();
+          else saveRecords();
         }
         // definición para el ticker (mejor esfuerzo, online) + refresco
         fetchDefinition(word);
@@ -728,8 +759,37 @@
     submitPath();
   }
 
+  // "+N" flotante (solo el puntaje) que sube y se desvanece hacia el jugador al
+  // acertar una palabra. Se ancla sobre el readout verde de la palabra.
+  function showScorePop(pts) {
+    const host = document.querySelector(".board-area");
+    if (!host) return;
+    const pop = document.createElement("span");
+    pop.className = "score-pop";
+    pop.textContent = "+" + pts;
+    if (currentWordEl) pop.style.top = currentWordEl.offsetTop + "px";
+    host.appendChild(pop);
+    setTimeout(() => pop.remove(), 900);
+  }
+
+  // Flash "+Ns" verde junto al reloj cuando una palabra suma tiempo (Contrarreloj).
+  function showTimeGain(sec) {
+    const host = timerEl.parentElement;
+    if (!host) return;
+    const tag = document.createElement("span");
+    tag.className = "time-gain";
+    tag.textContent = "+" + sec + "s";
+    host.appendChild(tag);
+    setTimeout(() => tag.remove(), 850);
+    timerEl.classList.add("gain");
+    setTimeout(() => timerEl.classList.remove("gain"), 400);
+  }
+
   function tick() {
     timeLeft -= 1;
+    if (gameMode === "contrarreloj" && state === "playing") {
+      contraElapsed += 1; // segundos sobrevividos (para el récord de tiempo)
+    }
     if (gameMode === "trivia" && state === "playing" && !questionLocked) {
       questionTimeLeft -= 1;
       if (questionTimeLeft <= 0) {
@@ -893,7 +953,7 @@
         flashFoundChip(word);
         return;
       }
-      const pts = TypoEngine.scoreForLength(word.length);
+      const pts = TypoEngine.scoreForWord(word);
       foundWords.set(word, pts);
       questionFound.add(word);
       triviaScore += pts;
@@ -905,6 +965,7 @@
       vibrate([35, 25, 35, 25, 35, 25, 75]);
       playSuccess();
       flashResult(path, "valid");
+      showScorePop(pts);
       renderFoundList();
       renderTriviaBanner();
       updateStats();
@@ -964,6 +1025,7 @@
 
   function startGame() {
     initAudio();
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } // evita intervalos huérfanos
     state = "playing";
     gridWrapEl.classList.remove("blurred");
     foundWords = new Map();
@@ -988,6 +1050,8 @@
     }
     timeLeft = GAME_SECONDS;
     longestRecordThisGame = false;
+    contraElapsed = 0;
+    contraSecondsGained = 0;
     renderFoundList();
     renderPath();
     updateStats();
@@ -1026,15 +1090,25 @@
     const missedTitleEl = document.getElementById("missed-title");
     if (missedTitleEl) missedTitleEl.textContent = "Palabras que te perdiste";
 
-    // Récords: puntaje y nº de palabras de esta partida
+    // Récords: puntaje y nº de palabras de esta partida (por modo)
+    const isContra = gameMode === "contrarreloj";
+    const recObj = isContra ? contraRecords : records;
     const sc = totalScore();
     const wc = foundWords.size;
-    const newScore = sc > (records.bestScore || 0);
-    const newWords = wc > (records.bestWords || 0);
-    if (newScore) records.bestScore = sc;
-    if (newWords) records.bestWords = wc;
-    if (newScore || newWords || longestRecordThisGame) saveRecords();
-    renderRecords({ newScore, newWords, newWord: longestRecordThisGame });
+    const newScore = sc > (recObj.bestScore || 0);
+    const newWords = wc > (recObj.bestWords || 0);
+    const newTime = isContra && contraElapsed > (contraRecords.bestTime || 0);
+    if (newScore) recObj.bestScore = sc;
+    if (newWords) recObj.bestWords = wc;
+    if (newTime) contraRecords.bestTime = contraElapsed;
+    if (newScore || newWords || longestRecordThisGame || newTime) {
+      if (isContra) saveContraRecords();
+      else saveRecords();
+    }
+    const extraRows = isContra
+      ? [{ label: "Mejor tiempo", val: formatTime(contraRecords.bestTime || 0), isNew: newTime }]
+      : null;
+    renderRecords({ newScore, newWords, newWord: longestRecordThisGame }, recObj, extraRows);
     renderTicker();
 
     const missed = [...solved.entries()]
@@ -1050,6 +1124,9 @@
       const longest = words.filter((w) => w.length === maxLen);
       const label = longest.length > 1 ? "más largas" : "más larga";
       details += ` · ${label} (${maxLen} letras): ${longest.join(", ")}`;
+    }
+    if (isContra) {
+      details = `Ganaste +${contraSecondsGained}s de tiempo · ` + details;
     }
     finalDetailsEl.textContent = details;
 
@@ -1215,26 +1292,39 @@
   }
   // Menú dinámico: récords + instrucciones del modo seleccionado
   function updateMenu() {
-    const isTrivia = gameMode === "trivia";
     const ic = document.getElementById("instr-clasico");
     const it = document.getElementById("instr-trivia");
-    if (ic) ic.hidden = isTrivia;
-    if (it) it.hidden = !isTrivia;
+    const ico = document.getElementById("instr-contrarreloj");
+    if (ic) ic.hidden = gameMode !== "clasico";
+    if (it) it.hidden = gameMode !== "trivia";
+    if (ico) ico.hidden = gameMode !== "contrarreloj";
     const nameEl = document.getElementById("menu-mode-name");
-    if (nameEl) nameEl.textContent = isTrivia ? "Trivia" : "Clásico";
+    if (nameEl)
+      nameEl.textContent =
+        gameMode === "trivia" ? "Trivia" : gameMode === "contrarreloj" ? "Contrarreloj" : "Clásico";
     const rec = document.getElementById("menu-records");
     if (rec) {
-      const rows = isTrivia
-        ? [
-            ["Palabra más larga", triviaRecords.longestWord ? triviaRecords.longestWord + " (" + triviaRecords.longestWord.length + ")" : "—"],
-            ["Mejor puntaje", triviaRecords.bestScore || 0],
-            ["Más respuestas", triviaRecords.bestAnswers || 0],
-          ]
-        : [
-            ["Palabra más larga", records.longestWord ? records.longestWord + " (" + records.longestWord.length + ")" : "—"],
-            ["Mejor puntaje", records.bestScore || 0],
-            ["Más palabras", records.bestWords || 0],
-          ];
+      let rows;
+      if (gameMode === "trivia") {
+        rows = [
+          ["Palabra más larga", triviaRecords.longestWord ? triviaRecords.longestWord + " (" + triviaRecords.longestWord.length + ")" : "—"],
+          ["Mejor puntaje", triviaRecords.bestScore || 0],
+          ["Más respuestas", triviaRecords.bestAnswers || 0],
+        ];
+      } else if (gameMode === "contrarreloj") {
+        rows = [
+          ["Palabra más larga", contraRecords.longestWord ? contraRecords.longestWord + " (" + contraRecords.longestWord.length + ")" : "—"],
+          ["Mejor puntaje", contraRecords.bestScore || 0],
+          ["Más palabras", contraRecords.bestWords || 0],
+          ["Mejor tiempo", formatTime(contraRecords.bestTime || 0)],
+        ];
+      } else {
+        rows = [
+          ["Palabra más larga", records.longestWord ? records.longestWord + " (" + records.longestWord.length + ")" : "—"],
+          ["Mejor puntaje", records.bestScore || 0],
+          ["Más palabras", records.bestWords || 0],
+        ];
+      }
       rec.innerHTML = rows
         .map((r) => '<div class="rec-row"><span class="rec-label">' + r[0] + '</span><span class="rec-val">' + r[1] + "</span></div>")
         .join("");
@@ -1242,7 +1332,7 @@
   }
   modeBtns.forEach((b) =>
     b.addEventListener("click", () => {
-      gameMode = b.dataset.mode === "trivia" ? "trivia" : "clasico";
+      gameMode = VALID_MODES.includes(b.dataset.mode) ? b.dataset.mode : "clasico";
       try { localStorage.setItem(MODE_KEY, gameMode); } catch (e) {}
       updateModeButtons();
       updateMenu();

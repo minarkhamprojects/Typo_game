@@ -143,6 +143,36 @@ function scoreForLength(length) {
   return 11 + (length - 8) * 3;
 }
 
+// Valor de cada letra según qué tan difícil es usarla en español (base Scrabble
+// español). Letras comunes = 1; raras (X, Z, Ñ, J, Q, K, W) valen más.
+const LETTER_VALUES = {
+  A: 1, E: 1, O: 1, I: 1, S: 1, N: 1, R: 1, U: 1, L: 1, T: 1,
+  D: 2, G: 2,
+  C: 3, B: 3, M: 3, P: 3,
+  H: 4, F: 4, V: 4, Y: 4,
+  Q: 5, J: 5,
+  Ñ: 8, X: 8, K: 8, W: 8,
+  Z: 10,
+};
+
+function letterValue(ch) {
+  return LETTER_VALUES[ch] || 1;
+}
+
+// Puntaje de una palabra = suma del valor de sus letras (dificultad de uso).
+function scoreForWord(word) {
+  let s = 0;
+  for (const ch of word) s += letterValue(ch);
+  return s;
+}
+
+// Segundos que otorga una palabra en modo Contrarreloj: piso de 1 s (palabra de
+// puras letras comunes) + 1 s por cada punto de rareza por encima de lo común.
+// Equivale a 1 + (score - longitud). Palabra común → +1 s; palabra rara → mucho más.
+function timeBonusForWord(word) {
+  return Math.max(1, 1 + scoreForWord(word) - word.length);
+}
+
 const NEIGHBOR_OFFSETS = [
   [-1, -1], [-1, 0], [-1, 1],
   [0, -1], [0, 1],
@@ -185,7 +215,7 @@ function solveBoard(grid, trie) {
     chars.push(letter);
     if (child.end && chars.length >= MIN_WORD_LEN) {
       const word = chars.join("");
-      if (!found.has(word)) found.set(word, scoreForLength(word.length));
+      if (!found.has(word)) found.set(word, scoreForWord(word));
     }
     visited[r][c] = true;
     for (const [dr, dc] of NEIGHBOR_OFFSETS) {
@@ -391,6 +421,10 @@ const api = {
   boardLetterCounts,
   buildTrie,
   scoreForLength,
+  LETTER_VALUES,
+  letterValue,
+  scoreForWord,
+  timeBonusForWord,
   isValidPath,
   wordFromPath,
   solveBoard,
