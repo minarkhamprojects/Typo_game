@@ -16,8 +16,8 @@
    · ese inverso es lo que hunde el hueco y levanta la tecla
    ═══════════════════════════════════════════════════════════════════════════ */
 [data-skin="manga"] {
-  --ink: #14141a;
-  --paper: #f2efe6;
+  --ink: #1b1b22;
+  --paper: #e7e0d0;
   --tone: rgba(20, 20, 26, 0.92);
 
   --accent: #14141a;
@@ -41,8 +41,8 @@
   /* ── SOCKET: el hueco se dibuja con TRAMA, acumulada arriba-izquierda ── */
   --socket-radius: 2px;
   --socket-bg:
-    radial-gradient(130% 120% at 88% 88%, rgba(255, 255, 255, 1) 26%, rgba(255, 255, 255, 0) 78%),
-    radial-gradient(circle, var(--tone) 1.15px, transparent 1.5px) 0 0 / 5px 5px,
+    radial-gradient(130% 120% at 88% 88%, rgba(246, 241, 230, 1) 26%, rgba(246, 241, 230, 0) 78%),
+    radial-gradient(circle, var(--tone) 1.05px, transparent 1.5px) 0 0 / 6.6px 6.6px,
     var(--paper);
   --socket-shadow: none;
   --socket-border: 2.5px solid var(--ink);
@@ -50,24 +50,24 @@
   /* ── CUERPO: papel blanco con contorno de tinta ── */
   --body-inset: 3px 3px 7px 3px;
   --body-radius: 2px;
-  --body-bg: #fff;
+  --body-bg: #f6f1e6;
   --body-shadow: 5px 5px 0 var(--ink);   /* sombra proyectada: tinta sólida, SIN blur */
   --body-border: 3px solid var(--ink);
 
   /* ── PAREDES: hatching. Arriba limpia (luz), abajo densa, lados a 45° ── */
-  --wall-t: #fff;
-  --wall-b: repeating-linear-gradient(90deg, var(--ink) 0 1.4px, #fff 1.4px 4px);
-  --wall-l: repeating-linear-gradient(45deg, rgba(20, 20, 26, 0.85) 0 1px, #fff 1px 5px);
-  --wall-r: repeating-linear-gradient(-45deg, rgba(20, 20, 26, 0.85) 0 1px, #fff 1px 5px);
+  --wall-t: #f6f1e6;
+  --wall-b: repeating-linear-gradient(90deg, var(--ink) 0 1.3px, #f6f1e6 1.3px 5.2px);
+  --wall-l: repeating-linear-gradient(45deg, rgba(27, 27, 34, 0.55) 0 1px, #f6f1e6 1px 6.5px);
+  --wall-r: repeating-linear-gradient(-45deg, rgba(27, 27, 34, 0.55) 0 1px, #f6f1e6 1px 6.5px);
   --wall-t-shadow: none;
   --wall-b-shadow: none;
 
   /* ── TAPA: el hatching se acumula abajo-derecha + brillo de blanco reservado ── */
   --dish-radius: 2px;
   --dish-bg:
-    radial-gradient(38% 26% at 26% 20%, #fff 0 62%, transparent 66%),   /* especular reservado */
-    repeating-linear-gradient(45deg, rgba(20, 20, 26, 0.85) 0 1.2px, transparent 1.2px 5px),
-    #fff;
+    radial-gradient(40% 28% at 26% 20%, #fffdf7 0 62%, transparent 66%),   /* especular reservado */
+    repeating-linear-gradient(45deg, rgba(27, 27, 34, 0.55) 0 1.1px, transparent 1.1px 6.6px),
+    #f6f1e6;
   --dish-shadow: inset -3px -3px 0 rgba(20, 20, 26, 0.14);
   --dish-border: 2px solid var(--ink);
 
@@ -179,7 +179,8 @@
   /* fondo manga generado (papel + líneas cinéticas + screentone, centro limpio) */
   background: var(--paper) url("manga-bg.jpg") center center / cover no-repeat;
   opacity: 1;
-  filter: none;
+  /* tono cálido + menos brillo para que no canse la vista */
+  filter: brightness(0.94) sepia(0.16) saturate(0.85);
   mix-blend-mode: normal;
 }
 /* velo de papel para que el centro respire y el tablero se lea encima */
@@ -190,7 +191,7 @@
 [data-skin="manga"] #pcb-fx { display: none; }
 
 /* ── Selector de skin en el menú (inyectado por skins.js) ── */
-.skin-select { max-width: 22rem; margin: 0 auto 0.7rem; }
+.skin-select { max-width: 22rem; margin: 0 auto 0.45rem; }
 .skin-select-label {
   font-family: var(--font-ui);
   font-size: 0.66rem;
@@ -262,9 +263,9 @@
   letter-spacing: 0;
   color: transparent;
   background-image:
-    radial-gradient(circle at center, rgba(18, 18, 24, 0.92) 1.15px, transparent 1.7px),
+    radial-gradient(circle at center, rgba(18, 18, 24, 0.8) 0.5px, transparent 0.95px),
     linear-gradient(var(--sfx-color, #fff), var(--sfx-color, #fff));
-  background-size: 6px 6px, 100% 100%;
+  background-size: 2.6px 2.6px, 100% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -273,9 +274,16 @@
   text-shadow: 7px 7px 0 var(--ink, #14141a);
 }
 [data-skin="manga"] .typo-sfx.epic {
-  background-size: 7px 7px, 100% 100%;
+  background-size: 3px 3px, 100% 100%;
   -webkit-text-stroke: 5px var(--ink, #14141a);
   text-shadow: 8px 8px 0 var(--ink, #14141a), 0 0 26px var(--sfx-color, #fff);
+}
+/* el "+N" del puntaje sí lleva color en manga (rojo cómic con contorno de tinta) */
+[data-skin="manga"] .score-pop {
+  color: #e0362b;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--ink);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
