@@ -39,7 +39,9 @@ function generateGrid(rand = Math.random, size = GRID_SIZE) {
   for (let r = 0; r < size; r++) {
     const row = [];
     for (let c = 0; c < size; c++) {
-      row.push(pickLetter(pool, rand));
+      const L = pickLetter(pool, rand);
+      // En español la Q siempre va con U: la tecla es "QU" y cuenta como Q+U.
+      row.push(L === "Q" ? "QU" : L);
     }
     grid.push(row);
   }
@@ -114,9 +116,12 @@ function makeDictionary(rawText) {
 function boardLetterCounts(grid) {
   const avail = {};
   for (const row of grid) {
-    for (const ch of row) {
-      const code = ch.charCodeAt(0);
-      avail[code] = (avail[code] || 0) + 1;
+    for (const cell of row) {
+      // Una celda puede tener más de una letra (tecla "QU" = Q + U).
+      for (const ch of cell) {
+        const code = ch.charCodeAt(0);
+        avail[code] = (avail[code] || 0) + 1;
+      }
     }
   }
   return avail;
@@ -202,13 +207,18 @@ function solveBoard(grid, trie) {
   const chars = [];
 
   function dfs(r, c, node) {
-    const letter = grid[r][c];
-    const child = node[letter];
-    if (!child) return;
-    chars.push(letter);
-    if (child.end && chars.length >= MIN_WORD_LEN) {
+    const tile = grid[r][c]; // "A" o multi-letra "QU"
+    let child = node;
+    for (const ch of tile) {
+      child = child[ch];
+      if (child === undefined) return; // prefijo imposible en el trie
+    }
+    chars.push(tile);
+    if (child.end) {
       const word = chars.join("");
-      if (!found.has(word)) found.set(word, scoreForWord(word));
+      if (word.length >= MIN_WORD_LEN && !found.has(word)) {
+        found.set(word, scoreForWord(word));
+      }
     }
     visited[r][c] = true;
     for (const [dr, dc] of NEIGHBOR_OFFSETS) {

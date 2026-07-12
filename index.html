@@ -18,12 +18,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css?v=contra3" />
+<link rel="stylesheet" href="style.css?v=contra4" />
 </head>
 <body>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
 
   <div class="splash" id="splash">
+    <div class="splash-ghost" id="splash-ghost" aria-hidden="true"></div>
     <div class="splash-inner">
       <h1 class="splash-title">Typo<span class="splash-cursor"></span></h1>
       <div class="splash-loader" id="splash-loader"><span class="splash-bar"></span></div>
@@ -66,7 +67,6 @@
       <div class="grid-wrap" id="grid-wrap">
         <div class="grid" id="grid" aria-label="Tablero de letras"></div>
         <svg id="path-overlay" aria-hidden="true"><polyline id="path-line" points="" /></svg>
-        <div class="blur-hint"><span>Pulsa <strong>Comenzar</strong></span></div>
       </div>
       <div class="controls">
         <button id="rotate-left" class="key-btn sq" aria-label="Girar el tablero a la izquierda">
@@ -102,6 +102,7 @@
     <div class="modal">
       <h2>¡Tiempo!</h2>
       <p class="modal-score">Puntaje final: <strong id="final-score">0</strong></p>
+      <p id="handicap-line" class="handicap-line" hidden></p>
       <p id="final-details"></p>
       <div class="secrets-reveal" id="secrets-reveal" hidden></div>
       <h3 class="records-title">Tus récords</h3>
@@ -241,9 +242,9 @@
 
   <script src="pcbfx.js"></script>
   <script src="themes.js"></script>
-  <script src="trivia.js?v=contra3"></script>
+  <script src="trivia.js?v=contra4"></script>
   <script src="words_es.js"></script>
-  <script src="engine.js?v=contra3"></script>
-  <script src="game.js?v=contra3"></script>
+  <script src="engine.js?v=contra4"></script>
+  <script src="game.js?v=contra4"></script>
 </body>
 </html>

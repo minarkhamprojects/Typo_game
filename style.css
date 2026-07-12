@@ -1253,6 +1253,47 @@ body {
   align-items: center;
   gap: 1.1rem;
   text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tablero "fantasma" detrás de la carga: 4×4 de letras tenues con glitch */
+.splash-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  place-items: center;
+  padding: clamp(1.5rem, 14vw, 5rem);
+  gap: 0.4rem;
+  pointer-events: none;
+  opacity: 0.14;
+  filter: blur(0.6px);
+  animation: ghostFlicker 3.2s steps(1) infinite;
+}
+.splash-ghost .ghost-cell {
+  font-family: var(--font-display, sans-serif);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 9vw, 3.2rem);
+  color: var(--accent, #3cbf66);
+  text-shadow: 1.5px 0 rgba(255, 60, 60, 0.5), -1.5px 0 rgba(60, 120, 255, 0.5);
+  animation: ghostGlitch 2.6s steps(1) infinite;
+}
+.splash-ghost .ghost-cell:nth-child(3n) { animation-delay: 0.7s; }
+.splash-ghost .ghost-cell:nth-child(4n) { animation-delay: 1.3s; }
+.splash-ghost .ghost-cell:nth-child(5n) { animation-delay: 1.9s; }
+@keyframes ghostFlicker {
+  0%, 100% { opacity: 0.14; }
+  48% { opacity: 0.1; }
+  50% { opacity: 0.22; }
+  52% { opacity: 0.12; }
+}
+@keyframes ghostGlitch {
+  0%, 92%, 100% { transform: translate(0, 0); text-shadow: 1.5px 0 rgba(255,60,60,0.5), -1.5px 0 rgba(60,120,255,0.5); }
+  93% { transform: translate(2px, -1px); text-shadow: -3px 0 rgba(255,60,60,0.7), 3px 0 rgba(60,120,255,0.7); }
+  96% { transform: translate(-2px, 1px); text-shadow: 3px 0 rgba(255,60,60,0.7), -3px 0 rgba(60,120,255,0.7); }
 }
 
 /* Título retro: SOLO las letras con dot-matrix + scanlines (sin panel negro).
@@ -1539,3 +1580,25 @@ body {
   font-size: 0.56rem;
   line-height: 1.15;
 }
+
+/* Letra especial (juego especial): su valor en la esquina se ve más grande y en negrita */
+.key-mark--boost {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  color: var(--accent) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--accent), transparent 45%);
+}
+.cell.boosted .cell__face {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent), transparent 55%);
+}
+
+/* Línea de handicap en el resumen */
+.handicap-line {
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin: 0.1rem 0 0.2rem;
+}
+.handicap-line b { color: var(--text); }
+.handicap-line .net-pos { color: var(--accent); }
+.handicap-line .net-neg { color: var(--error); }

@@ -81,6 +81,35 @@
   let secretWords = new Set(); // palabras secretas del tablero actual
   let themeName = "";
   let secretsFound = 0;
+
+  // ——— Juego especial: una letra vale más (×mult), resaltada en el tablero ———
+  const SPECIAL_CHANCE = 0.2; // prob. de que un tablero sea "especial"
+  const SPECIAL_MULT = 2;     // la letra especial vale el doble
+  let boostedLetter = "";     // letra potenciada del tablero actual ("" = normal)
+  let boostMult = 1;
+
+  // Valor de una tecla considerando la letra especial. "QU" = Q + U.
+  function tileValue(cell) {
+    let v = 0;
+    for (const ch of cell) v += TypoEngine.letterValue(ch) * (ch === boostedLetter ? boostMult : 1);
+    return v;
+  }
+  // Puntaje de una palabra con la letra especial aplicada.
+  function scoreWord(word) {
+    let v = 0;
+    for (const ch of word) v += TypoEngine.letterValue(ch) * (ch === boostedLetter ? boostMult : 1);
+    return v;
+  }
+  // Elige (o no) la letra especial del tablero recién generado.
+  function pickSpecial(g) {
+    boostedLetter = "";
+    boostMult = 1;
+    if (Math.random() >= SPECIAL_CHANCE) return;
+    const letters = [...new Set(g.flat().flatMap((cell) => [...cell]))];
+    if (!letters.length) return;
+    boostedLetter = letters[Math.floor(Math.random() * letters.length)];
+    boostMult = SPECIAL_MULT;
+  }
   const themeBanner = document.getElementById("theme-banner");
   const themeNameEl = document.getElementById("theme-name");
   const secretCountEl = document.getElementById("secret-count");
@@ -96,7 +125,6 @@
 
   // ——— Modo Contrarreloj: arranca en 1:30 y cada palabra suma tiempo ———
   const CONTRA_START_SECONDS = 90;  // 1:30 igual que el clásico
-  const CONTRA_TIME_PER_WORD = 1;   // cada palabra suma exactamente 1 s
   let contraElapsed = 0;            // segundos que llevas vivo esta partida
   let contraSecondsGained = 0;      // total de segundos que sumaron tus palabras
   const CONTRA_RECORDS_KEY = "typo-contra-records";
@@ -126,6 +154,34 @@
   let lastTriviaId = null;
   let usedTriviaIds = new Set();    // preguntas ya usadas en esta partida (sin repetir)
   let triviaFoundWords = [];        // respuestas acertadas en toda la partida
+  // ——— Handicap estilo golf (por modo): calibra en 10 juegos, luego promedio móvil ———
+  const HANDICAP_KEY = "typo-handicap";
+  const HC_CALIBRATION = 10; // juegos para calibrar
+  const HC_WINDOW = 10;      // ventana móvil (últimos N)
+  function loadHandicap() {
+    try { return JSON.parse(localStorage.getItem(HANDICAP_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  let handicapHist = loadHandicap(); // { clasico:[...], contrarreloj:[...], trivia:[...] }
+  function saveHandicap() {
+    try { localStorage.setItem(HANDICAP_KEY, JSON.stringify(handicapHist)); } catch (e) {}
+  }
+  function modeHistory(mode) { return handicapHist[mode] || (handicapHist[mode] = []); }
+  // Handicap actual del modo (promedio de últimos 10). null mientras calibra.
+  function handicapFor(mode) {
+    const h = modeHistory(mode);
+    if (h.length < HC_CALIBRATION) return null;
+    const last = h.slice(-HC_WINDOW);
+    return Math.round(last.reduce((a, b) => a + b, 0) / last.length);
+  }
+  // Registra el score de una partida en el historial del modo (conserva últimos 10).
+  function recordGameScore(mode, score) {
+    const h = modeHistory(mode);
+    h.push(score);
+    if (h.length > HC_WINDOW) h.splice(0, h.length - HC_WINDOW);
+    saveHandicap();
+  }
+
   const TRIVIA_RECORDS_KEY = "typo-trivia-records";
   function loadTriviaRecords() {
     try { return JSON.parse(localStorage.getItem(TRIVIA_RECORDS_KEY)) || {}; }
@@ -351,13 +407,19 @@
         }
         const face = document.createElement("div");
         face.className = "cell__face";
+        const cellVal = grid[r][c];
         const mark = document.createElement("span");
         mark.className = "key-mark";
-        // Esquina = valor de la letra (dificultad): común = 1, rara = más.
-        mark.textContent = String(TypoEngine.letterValue(grid[r][c]));
+        // Esquina = valor de la tecla (dificultad); si es la letra especial, ×mult.
+        mark.textContent = String(tileValue(cellVal));
+        if (boostedLetter && cellVal.includes(boostedLetter)) {
+          mark.classList.add("key-mark--boost");
+          cell.classList.add("boosted");
+        }
         const legend = document.createElement("span");
         legend.className = "key-legend";
-        legend.textContent = grid[r][c];
+        // La tecla "QU" se muestra como "Qu" (en español la Q siempre lleva U).
+        legend.textContent = cellVal === "QU" ? "Qu" : cellVal;
         face.appendChild(mark);
         face.appendChild(legend);
         body.appendChild(face);
@@ -528,6 +590,27 @@
       .join("");
   }
 
+  // Handicap estilo golf en el resumen: neto = score − handicap (partidas previas).
+  // Calcula ANTES de registrar esta partida, luego la registra.
+  function renderHandicap(mode, score) {
+    const el = document.getElementById("handicap-line");
+    const before = handicapFor(mode);
+    const played = modeHistory(mode).length;
+    recordGameScore(mode, score);
+    if (!el) return;
+    if (before === null) {
+      const n = Math.min(played + 1, HC_CALIBRATION);
+      el.innerHTML = "Calibrando handicap · <b>" + n + "/" + HC_CALIBRATION + "</b>";
+    } else {
+      const net = score - before;
+      const cls = net >= 0 ? "net-pos" : "net-neg";
+      el.innerHTML =
+        "Handicap <b>" + before + "</b> · Tu neto <b class='" + cls + "'>" +
+        (net >= 0 ? "+" : "") + net + "</b>";
+    }
+    el.hidden = false;
+  }
+
   // Definición desde el Wikcionario en español (mejor esfuerzo, requiere red).
   // En el extract de Wikcionario el número del sentido va en su PROPIA línea
   // (o "2 Astronomía") y la definición viene en la línea siguiente.
@@ -670,7 +753,7 @@
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
       if (validWord && !foundWords.has(word)) {
         const isSecret = secretWords.has(word);
-        const base = TypoEngine.scoreForWord(word);
+        const base = scoreWord(word);
         const pts = isSecret ? base + SECRET_BONUS : base;
         foundWords.set(word, pts);
         if (isSecret) {
@@ -689,11 +772,12 @@
         }
         // "+N" flotante con el puntaje ganado (sube hacia el jugador).
         showScorePop(pts);
-        // Contrarreloj: cada palabra suma exactamente 1 s (ritmo ágil).
+        // Contrarreloj: +1 s por palabra; +2 s si tiene más de 5 letras.
         if (gameMode === "contrarreloj") {
-          timeLeft += CONTRA_TIME_PER_WORD;
-          contraSecondsGained += CONTRA_TIME_PER_WORD;
-          showTimeGain(CONTRA_TIME_PER_WORD);
+          const add = word.length > 5 ? 2 : 1;
+          timeLeft += add;
+          contraSecondsGained += add;
+          showTimeGain(add);
         }
         renderFoundList();
         updateStats();
@@ -953,7 +1037,7 @@
         flashFoundChip(word);
         return;
       }
-      const pts = TypoEngine.scoreForWord(word);
+      const pts = scoreWord(word);
       foundWords.set(word, pts);
       questionFound.add(word);
       triviaScore += pts;
@@ -1018,6 +1102,7 @@
     });
     if (missedSection) missedSection.hidden = found.length === 0;
 
+    renderHandicap("trivia", triviaScore);
     summaryOverlay.hidden = false;
   }
 
@@ -1039,7 +1124,8 @@
       usedTriviaIds = new Set();
       triviaFoundWords = [];
       questionLocked = false;
-      newBoardBtn.disabled = false; // funciona como "Saltar"
+      newBoardBtn.hidden = false; // en Trivia sí se usa: "Saltar"
+      newBoardBtn.disabled = false;
       newBoardBtn.textContent = "Saltar";
       updateStartBtn();
       renderFoundList();
@@ -1055,8 +1141,7 @@
     renderFoundList();
     renderPath();
     updateStats();
-    newBoardBtn.disabled = true;
-    newBoardBtn.textContent = "Cambiar tablero";
+    newBoardBtn.hidden = true; // "Cambiar tablero" eliminado en Clásico/Contrarreloj
     updateStartBtn();
     renderTicker(); // al iniciar, el ticker pasará a mostrar definiciones
     timerHandle = setInterval(tick, 1000);
@@ -1076,8 +1161,7 @@
     gridWrapEl.classList.add("blurred");
     clearInterval(timerHandle);
     timerHandle = null;
-    newBoardBtn.disabled = false;
-    newBoardBtn.textContent = "Cambiar tablero";
+    newBoardBtn.hidden = gameMode !== "trivia";
     updateStartBtn();
 
     if (gameMode === "trivia") {
@@ -1129,6 +1213,9 @@
       details = `Ganaste +${contraSecondsGained}s de tiempo · ` + details;
     }
     finalDetailsEl.textContent = details;
+
+    // Handicap estilo golf: neto = tu score − tu handicap (según partidas previas)
+    renderHandicap(gameMode, sc);
 
     // Revelar las palabras secretas del tablero temático
     const secretsEl = document.getElementById("secrets-reveal");
@@ -1223,6 +1310,7 @@
       themeName = board.theme;
       secretsFound = 0;
       possibleCount = solved.size; // contador de palabras posibles del tablero
+      pickSpecial(grid); // ¿juego especial? (una letra vale más)
       updateThemeBanner();
       state = "idle";
       gridWrapEl.classList.add("blurred");
@@ -1234,6 +1322,7 @@
       renderFoundList();
       updateStats();
       startBtn.disabled = false;
+      newBoardBtn.hidden = gameMode !== "trivia"; // solo Trivia usa el botón (Saltar)
       newBoardBtn.disabled = false;
       updateStartBtn();
       renderTicker();
@@ -1244,6 +1333,14 @@
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp);
   window.addEventListener("pointercancel", onPointerUp);
+
+  // Click en el tablero blurreado (en reposo) = comenzar la partida.
+  gridWrapEl.addEventListener("click", () => {
+    if (state === "idle") {
+      initAudio();
+      startGame();
+    }
+  });
 
   startBtn.addEventListener("click", () => {
     if (state === "playing") {
@@ -1325,6 +1422,11 @@
           ["Más palabras", records.bestWords || 0],
         ];
       }
+      const hc = handicapFor(gameMode);
+      const hcVal = hc === null
+        ? "calibrando " + Math.min(modeHistory(gameMode).length, HC_CALIBRATION) + "/" + HC_CALIBRATION
+        : hc;
+      rows.unshift(["Handicap", hcVal]);
       rec.innerHTML = rows
         .map((r) => '<div class="rec-row"><span class="rec-label">' + r[0] + '</span><span class="rec-val">' + r[1] + "</span></div>")
         .join("");
@@ -1353,6 +1455,16 @@
   const splashEl = document.getElementById("splash");
   const splashStart = document.getElementById("splash-start");
   const splashLoader = document.getElementById("splash-loader");
+  // Tablero "fantasma" detrás de la carga (efecto glitch de arranque).
+  const splashGhost = document.getElementById("splash-ghost");
+  if (splashGhost) {
+    const g = TypoEngine.generateGrid();
+    splashGhost.innerHTML = g
+      .flat()
+      .map((cell) => '<span class="ghost-cell">' + (cell === "QU" ? "Qu" : cell) + "</span>")
+      .join("");
+  }
+
   if (splashEl && splashStart) {
     setTimeout(() => {
       if (splashLoader) splashLoader.hidden = true;
