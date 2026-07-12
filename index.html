@@ -17,10 +17,18 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css?v=mp1" />
+<link rel="stylesheet" href="skins.css?v=1" />
 </head>
 <body>
+  <!-- filtro de tinta: hace temblar la linea. Solo lo usa la skin manga. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="typo-ink">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="7" result="t"/>
+      <feDisplacementMap in="SourceGraphic" in2="t" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
 
   <div class="splash" id="splash">
@@ -132,7 +140,8 @@
       </div>
       <div id="mp-lobby" hidden>
         <div class="mp-code-box">Código de sala<br><b id="mp-code-display">----</b></div>
-        <p class="mp-hint">Comparte el código. Cuando estén todos, el anfitrión inicia.</p>
+        <button id="mp-share" class="btn wide mp-share-btn" type="button">📤 Compartir código</button>
+        <p class="mp-hint">Compártelo por WhatsApp. Cuando estén todos, el anfitrión inicia.</p>
         <ul class="mp-players" id="mp-players"></ul>
         <button id="mp-start" class="btn btn-primary wide" hidden>Comenzar duelo</button>
         <div class="mp-wait" id="mp-wait" hidden>Esperando al anfitrión…</div>
@@ -284,6 +293,7 @@
   <script src="trivia.js?v=mp1"></script>
   <script src="words_es.js"></script>
   <script src="engine.js?v=mp1"></script>
+  <script src="skins.js?v=1"></script>
   <script src="game.js?v=mp1"></script>
   <script src="multiplayer.js?v=mp1"></script>
 </body>

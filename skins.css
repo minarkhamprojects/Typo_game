@@ -1,0 +1,420 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TYPO · SKINS
+   Cada skin redefine SOLO tokens. La geometría del keycap (socket > cuerpo >
+   4 paredes > tapa) nunca cambia. Si una skin necesita tocar estructura,
+   está mal pensada.
+
+   Uso:  <html data-skin="manga">
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MANGA — tinta, trama y línea cinética.
+   Regla del estilo: el volumen NO se pinta con degradado, se pinta con TRAMA.
+   Pero la luz manda igual: una sola fuente arriba-izquierda.
+   · la tecla acumula hatching abajo-derecha (donde no llega la luz)
+   · el socket acumula trama arriba-izquierda (su pared en sombra)
+   · ese inverso es lo que hunde el hueco y levanta la tecla
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-skin="manga"] {
+  --ink: #14141a;
+  --paper: #f2efe6;
+  --tone: rgba(20, 20, 26, 0.92);
+
+  --accent: #14141a;
+  --error: #14141a;
+  --dup: #14141a;
+  --text: #14141a;
+  --text-muted: rgba(20, 20, 26, 0.6);
+
+  /* ── PLACA = viñeta de manga ── */
+  --plate-radius: 3px;
+  --plate-pad: 14px;
+  --plate-gap: 11px;
+  --plate-border: 4px solid var(--ink);
+  --plate-tex: radial-gradient(circle, rgba(20, 20, 26, 0.13) 1.1px, transparent 1.5px);
+  --plate-tex-size: 7px 7px;
+  --plate-bg: linear-gradient(0deg, #fff, #fff);
+  --plate-shadow: 8px 8px 0 var(--ink);
+  --plate-blur: none;
+  --plate-filter: url(#typo-ink);
+
+  /* ── SOCKET: el hueco se dibuja con TRAMA, acumulada arriba-izquierda ── */
+  --socket-radius: 2px;
+  --socket-bg:
+    radial-gradient(130% 120% at 88% 88%, rgba(255, 255, 255, 1) 26%, rgba(255, 255, 255, 0) 78%),
+    radial-gradient(circle, var(--tone) 1.15px, transparent 1.5px) 0 0 / 5px 5px,
+    var(--paper);
+  --socket-shadow: none;
+  --socket-border: 2.5px solid var(--ink);
+
+  /* ── CUERPO: papel blanco con contorno de tinta ── */
+  --body-inset: 3px 3px 7px 3px;
+  --body-radius: 2px;
+  --body-bg: #fff;
+  --body-shadow: 5px 5px 0 var(--ink);   /* sombra proyectada: tinta sólida, SIN blur */
+  --body-border: 3px solid var(--ink);
+
+  /* ── PAREDES: hatching. Arriba limpia (luz), abajo densa, lados a 45° ── */
+  --wall-t: #fff;
+  --wall-b: repeating-linear-gradient(90deg, var(--ink) 0 1.4px, #fff 1.4px 4px);
+  --wall-l: repeating-linear-gradient(45deg, rgba(20, 20, 26, 0.85) 0 1px, #fff 1px 5px);
+  --wall-r: repeating-linear-gradient(-45deg, rgba(20, 20, 26, 0.85) 0 1px, #fff 1px 5px);
+  --wall-t-shadow: none;
+  --wall-b-shadow: none;
+
+  /* ── TAPA: el hatching se acumula abajo-derecha + brillo de blanco reservado ── */
+  --dish-radius: 2px;
+  --dish-bg:
+    radial-gradient(38% 26% at 26% 20%, #fff 0 62%, transparent 66%),   /* especular reservado */
+    repeating-linear-gradient(45deg, rgba(20, 20, 26, 0.85) 0 1.2px, transparent 1.2px 5px),
+    #fff;
+  --dish-shadow: inset -3px -3px 0 rgba(20, 20, 26, 0.14);
+  --dish-border: 2px solid var(--ink);
+
+  /* ── LEYENDA ── */
+  --legend-font: "Dela Gothic One", "Archivo", sans-serif;
+  --legend-size: clamp(1.2rem, 6vw, 1.75rem);
+  --legend-weight: 400;
+  --legend-ink: var(--ink);
+  --legend-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff,
+                   1.4px 1.4px 0 #fff, -1.4px 1.4px 0 #fff, 1.4px -1.4px 0 #fff, -1.4px -1.4px 0 #fff;
+  --mark-ink: rgba(20, 20, 26, 0.62);
+
+  /* ── ARRASTRE: la tecla se rellena de screentone 50% ── */
+  --sel-socket-bg: var(--socket-bg);
+  --sel-socket-shadow: none;
+  --sel-body-inset: 4px 3px 6px 3px;
+  --sel-body-bg: radial-gradient(circle, var(--ink) 1.5px, transparent 1.9px) 0 0 / 5px 5px, #fff;
+  --sel-body-shadow: 2px 2px 0 var(--ink);
+  --sel-wall-t: #fff;
+  --sel-wall-b: var(--ink);
+  --sel-wall-l: repeating-linear-gradient(45deg, var(--ink) 0 1.5px, #fff 1.5px 4px);
+  --sel-wall-r: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, #fff 1.5px 4px);
+  --sel-dish-bg:
+    radial-gradient(30% 20% at 26% 20%, rgba(255, 255, 255, 0.85) 0 62%, transparent 66%),
+    radial-gradient(circle, var(--ink) 1.5px, transparent 1.9px) 0 0 / 5px 5px,
+    #fff;
+  --sel-dish-shadow: inset -3px -3px 0 rgba(20, 20, 26, 0.2);
+  --sel-legend-ink: var(--ink);
+  --sel-legend-shadow: var(--legend-shadow);
+
+  /* ── ACIERTO: NEGATIVO. Tinta plena, letra en blanco reservado + ráfaga detrás ── */
+  --ok-socket-bg: transparent;
+  --ok-socket-shadow: none;
+  --ok-body-bg: var(--ink);
+  --ok-body-shadow: none;
+  --ok-wall-t: #3a3a42;
+  --ok-wall-b: #000;
+  --ok-wall-l: repeating-linear-gradient(45deg, #000 0 1px, #24242b 1px 5px);
+  --ok-wall-r: repeating-linear-gradient(-45deg, #000 0 1px, #24242b 1px 5px);
+  --ok-dish-bg:
+    radial-gradient(26% 18% at 26% 20%, rgba(255, 255, 255, 0.85) 0 60%, transparent 64%),
+    var(--ink);
+  --ok-dish-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.12);
+  --ok-legend-ink: #fff;
+  --ok-legend-shadow: none;
+  --ok-anim: typoPulse 0.48s ease;
+  /* la ráfaga de impacto: líneas radiales, DETRÁS de la tecla */
+  --key-behind-inset: -13%;
+  --key-behind-mask: radial-gradient(closest-side, transparent 50%, #000 60%, transparent 100%);
+
+  /* ── ERROR: cross-hatch furioso. Sin color: es rabia de tinta ── */
+  --err-socket-bg: var(--socket-bg);
+  --err-socket-shadow: none;
+  --err-body-bg:
+    repeating-linear-gradient(45deg, var(--ink) 0 1.4px, transparent 1.4px 5px),
+    repeating-linear-gradient(-45deg, var(--ink) 0 1.4px, transparent 1.4px 5px),
+    #fff;
+  --err-body-shadow: 5px 5px 0 var(--ink);
+  --err-wall-t: repeating-linear-gradient(45deg, var(--ink) 0 1.5px, #fff 1.5px 4px);
+  --err-wall-b: repeating-linear-gradient(45deg, var(--ink) 0 2px, #fff 2px 4px);
+  --err-wall-l: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, #fff 1.5px 4px);
+  --err-wall-r: repeating-linear-gradient(45deg, var(--ink) 0 1.5px, #fff 1.5px 4px);
+  --err-dish-bg:
+    repeating-linear-gradient(45deg, rgba(20, 20, 26, 0.9) 0 1.5px, transparent 1.5px 5px),
+    repeating-linear-gradient(-45deg, rgba(20, 20, 26, 0.9) 0 1.5px, transparent 1.5px 5px),
+    #fff;
+  --err-dish-shadow: inset 0 0 0 2px var(--ink);
+  --err-legend-ink: var(--ink);
+  --err-legend-shadow: 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff,
+                       2px 2px 0 #fff, -2px 2px 0 #fff, 2px -2px 0 #fff, -2px -2px 0 #fff;
+  --err-anim: typoShake 0.4s ease;
+
+  /* ── REPETIDA: trama más densa, sin color ── */
+  --dup-body-bg: radial-gradient(circle, var(--ink) 2px, transparent 2.4px) 0 0 / 5px 5px, #fff;
+  --dup-body-shadow: 3px 3px 0 var(--ink);
+  --dup-wall-t: #fff;
+  --dup-wall-b: var(--ink);
+  --dup-wall-l: repeating-linear-gradient(45deg, var(--ink) 0 2px, #fff 2px 4px);
+  --dup-wall-r: repeating-linear-gradient(-45deg, var(--ink) 0 2px, #fff 2px 4px);
+  --dup-dish-bg: radial-gradient(circle, var(--ink) 2px, transparent 2.4px) 0 0 / 5px 5px, #fff;
+  --dup-dish-shadow: inset -3px -3px 0 rgba(20, 20, 26, 0.22);
+  --dup-legend-ink: var(--ink);
+  --dup-legend-shadow: var(--err-legend-shadow);
+  --dup-anim: typoPulse 0.48s ease;
+
+  /* ── HUD / marcadores: caption boxes de tinta sobre papel ── */
+  --stat-radius: 2px;
+  --stat-bg: #fff;
+  --stat-border: 3px solid var(--ink);
+  --stat-shadow: 5px 5px 0 var(--ink);
+  --stat-label-ink: rgba(20, 20, 26, 0.6);
+  --stat-value-ink: var(--ink);
+
+  /* ── Tipografías ── */
+  --font-display: "Dela Gothic One", "Archivo", sans-serif;
+  --font-ui: "Zen Kaku Gothic New", "Space Grotesk", sans-serif;
+  --font-retro: "Zen Kaku Gothic New", monospace;
+}
+
+/* la ráfaga solo se enciende en la tecla acertada */
+[data-skin="manga"] .cell.valid::before {
+  --key-behind: repeating-conic-gradient(from 0deg at 50% 50%, var(--ink) 0 2deg, transparent 2deg 9deg);
+}
+
+/* ── LA ESCENA: la motherboard se convierte en papel ── */
+[data-skin="manga"] body { background-color: var(--paper); }
+[data-skin="manga"] .pcb-scene { background-color: var(--paper); }
+[data-skin="manga"] .pcb-scene::before {
+  /* fibra del papel */
+  background: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  opacity: 1;
+  filter: none;
+  mix-blend-mode: normal;
+}
+[data-skin="manga"] .pcb-scene::after {
+  /* líneas cinéticas: la "luz" de la viñeta entra por arriba-izquierda */
+  background: repeating-linear-gradient(118deg, rgba(20, 20, 26, 0.06) 0 1.2px, transparent 1.2px 11px);
+  -webkit-mask: radial-gradient(120% 100% at 6% -6%, #000 0%, transparent 62%);
+  mask: radial-gradient(120% 100% at 6% -6%, #000 0%, transparent 62%);
+}
+/* el canvas de electricidad no tiene sentido en papel */
+[data-skin="manga"] #pcb-fx { display: none; }
+
+/* ── Selector de skin en el menú (inyectado por skins.js) ── */
+.skin-select { max-width: 22rem; margin: 0 auto 0.7rem; }
+.skin-select-label {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.32rem;
+}
+.skin-row { display: flex; gap: 0.5rem; justify-content: center; }
+.skin-btn {
+  flex: 1 1 0;
+  padding: 0.5rem 0.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: rgba(20, 40, 30, 0.4);
+  border: 1px solid color-mix(in srgb, var(--accent), transparent 70%);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, color 0.12s ease;
+}
+.skin-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent), transparent 72%);
+}
+/* En manga el selector también es tinta sobre papel */
+[data-skin="manga"] .skin-btn {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink);
+}
+[data-skin="manga"] .skin-btn.active {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+/* ── El SFX del acierto: se inyecta desde game.js con .typo-sfx ── */
+.typo-sfx {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  font-family: "Dela Gothic One", sans-serif;
+  color: #fff;
+  -webkit-text-stroke: 4px var(--ink, #14141a);
+  paint-order: stroke fill;
+  text-shadow: 7px 7px 0 var(--ink, #14141a);
+  opacity: 0;
+  white-space: nowrap;
+  transform-origin: center;
+}
+@keyframes typoSfx {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-14deg); }
+  18%  { opacity: 1; transform: scale(1.22) rotate(-7deg); }
+  30%  { transform: scale(0.97) rotate(-8deg); }
+  40%  { transform: scale(1.04) rotate(-7deg); }
+  72%  { opacity: 1; transform: scale(1) rotate(-7deg); }
+  100% { opacity: 0; transform: scale(1.14) rotate(-6deg) translateY(-18px); }
+}
+.typo-sfx.go { animation: typoSfx 1s cubic-bezier(0.2, 1.6, 0.3, 1) forwards; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MANGA — el resto del chrome (HUD, controles, ticker, modales, portada…).
+   Todo cuelga de la paleta tinta/papel. Solo aplica bajo [data-skin="manga"];
+   la skin default queda intacta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Wordmark LCD → caja de viñeta ── */
+[data-skin="manga"] .lcd {
+  background: #fff;
+  background-image: none;
+  border: 3px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+[data-skin="manga"] .lcd-text {
+  color: var(--ink);
+  text-shadow: none;
+  font-family: "Dela Gothic One", "Archivo", sans-serif;
+}
+[data-skin="manga"] .lcd-cursor { background: var(--ink); box-shadow: none; }
+
+/* ── Botones (keycaps crema → papel con contorno de tinta) ── */
+[data-skin="manga"] .btn,
+[data-skin="manga"] .key-btn,
+[data-skin="manga"] .ctrl-ico,
+[data-skin="manga"] .ctrl-key {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+[data-skin="manga"] .btn:active,
+[data-skin="manga"] .key-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+[data-skin="manga"] .icon { color: var(--ink); }
+[data-skin="manga"] #mute-btn.muted .icon-sound .slash { stroke: var(--ink); }
+
+/* ── Botón principal (Comenzar/Terminar) → bloque de tinta plena, letra blanca ── */
+[data-skin="manga"] .btn-primary {
+  background: var(--ink);
+  border: 3px solid var(--ink);
+  color: #fff;
+  box-shadow: 5px 5px 0 rgba(20, 20, 26, 0.32);
+  text-shadow: none;
+}
+[data-skin="manga"] .btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(20, 20, 26, 0.32);
+}
+
+/* ── Ticker verde → caja de papel con tinta ── */
+[data-skin="manga"] .tips-screen {
+  background: #fff;
+  background-image: none;
+  border: 3px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+[data-skin="manga"] .tips-text { color: var(--ink); text-shadow: none; font-weight: 700; }
+
+/* ── "Palabras encontradas" + lista ── */
+[data-skin="manga"] .found-panel h2 {
+  color: var(--ink);
+  text-shadow: none;
+  font-family: "Dela Gothic One", "Archivo", sans-serif;
+}
+[data-skin="manga"] .found-list li { color: var(--ink); text-shadow: none; }
+[data-skin="manga"] .found-list li .pts { color: rgba(20, 20, 26, 0.6); }
+[data-skin="manga"] .current-word { text-shadow: none; }
+
+/* ── Modales → papel con marco de tinta y sombra sólida ── */
+[data-skin="manga"] .modal-overlay {
+  background: rgba(20, 20, 26, 0.32);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-skin="manga"] .modal {
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 8px 8px 0 var(--ink);
+}
+[data-skin="manga"] .modal h2,
+[data-skin="manga"] .modal h3,
+[data-skin="manga"] .records-title,
+[data-skin="manga"] .mode-title {
+  color: var(--ink);
+  text-shadow: none;
+  font-family: "Dela Gothic One", "Archivo", sans-serif;
+}
+[data-skin="manga"] .modal-score strong { color: var(--ink); }
+[data-skin="manga"] .score-table td:first-child { color: var(--ink); border-right-color: var(--ink); }
+[data-skin="manga"] .score-table td:last-child { color: var(--ink); }
+[data-skin="manga"] .records {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 2px;
+}
+[data-skin="manga"] .rec-label,
+[data-skin="manga"] .rec-val { color: var(--ink); }
+
+/* ── Selector de modo (Clásico/Trivia/Contrarreloj) ── */
+[data-skin="manga"] .mode-btn {
+  background: #fff;
+  border: 2.5px solid color-mix(in srgb, var(--ink), transparent 55%);
+  border-radius: 2px;
+  color: var(--ink);
+}
+[data-skin="manga"] .mode-btn.active {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+[data-skin="manga"] .mode-btn.active .mode-name { color: var(--ink); }
+
+/* ── Banner de tema / trivia ── */
+[data-skin="manga"] .theme-banner {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+[data-skin="manga"] .theme-tag,
+[data-skin="manga"] .theme-name,
+[data-skin="manga"] .theme-secret,
+[data-skin="manga"] .theme-secret b,
+[data-skin="manga"] .theme-banner.trivia .theme-tag,
+[data-skin="manga"] .theme-banner.trivia .theme-secret b { color: var(--ink); }
+
+/* ── Portada / splash → papel ── */
+[data-skin="manga"] .splash {
+  background: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.5'/%3E%3C/svg%3E");
+}
+[data-skin="manga"] .splash-title {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0.9px, transparent 1.4px),
+    linear-gradient(var(--ink), var(--ink));
+  background-size: 5px 5px, 100% 100%;
+  text-shadow: 5px 5px 0 rgba(20, 20, 26, 0.22);
+  animation: none;
+}
+[data-skin="manga"] .splash-cursor { background: var(--ink); box-shadow: none; }
+[data-skin="manga"] .splash-sub { color: var(--ink); }
+[data-skin="manga"] .splash-loader { background: rgba(20, 20, 26, 0.1); border: 1.5px solid var(--ink); }
+[data-skin="manga"] .splash-bar { background: var(--ink); box-shadow: none; }
+[data-skin="manga"] .splash-ghost .ghost-cell { color: var(--ink); text-shadow: none; }
+[data-skin="manga"] .enter-key {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 6px 6px 0 var(--ink);
+}
+[data-skin="manga"] .enter-face {
+  background: #fff;
+  box-shadow: none;
+  color: var(--ink);
+}
+[data-skin="manga"] .enter-arrow { color: var(--ink); }

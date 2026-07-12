@@ -45,6 +45,131 @@
   /* Diseño limpio (Typo.dc.html): Archivo para displays, Space Grotesk para
      etiquetas. Sin fuentes pixeladas — coincide con el editor de diseño. */
   --font-lcd: "Archivo", "Arial Black", sans-serif;
+
+  /* ═══════════════════════════════════════════════════════════════════
+     TOKENS DE SKIN — el tablero entero cuelga de aquí.
+     Los valores de abajo son la skin "default" (PCB + keycap crema).
+     Una skin nueva solo redefine estas variables en skins.css.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Placa */
+  --plate-radius: 24px;
+  --plate-pad: 16px;
+  --plate-gap: 7px;
+  --plate-border: 1px solid rgba(170, 158, 122, calc(var(--plate-opacity) + 0.3));
+  --plate-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --plate-tex-size: 120px 120px;
+  --plate-bg: linear-gradient(160deg, rgba(228,219,196,var(--plate-opacity)), rgba(210,200,172,calc(var(--plate-opacity)*0.96)) 58%, rgba(188,176,144,calc(var(--plate-opacity)*0.9)));
+  --plate-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 10px rgba(92,80,52,0.3), 0 22px 46px rgba(0,0,0,0.5);
+  --plate-blur: blur(3px) saturate(1.05);
+  --plate-filter: none;
+
+  /* Socket (1) */
+  --socket-radius: 19px;
+  --socket-bg: linear-gradient(160deg, #332e25, #231f18);
+  --socket-shadow: inset 0 5px 11px rgba(0,0,0,0.72), inset 0 -2px 0 rgba(255,255,255,0.08);
+  --socket-border: none;
+
+  /* Cuerpo (2) */
+  --body-inset: 4px 4px 9px 4px;   /* top right bottom left */
+  --body-radius: 14px;
+  --body-bg: #c7bca3;
+  --body-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 7px 12px rgba(0,0,0,0.5);
+  --body-border: none;
+
+  /* Paredes (3) */
+  --wall-t: linear-gradient(180deg, #f1e9d9, #e0d6c0);
+  --wall-b: linear-gradient(180deg, #cabfa6, #b3a488);
+  --wall-l: linear-gradient(90deg, #cabfa6, #d8ceb9);
+  --wall-r: linear-gradient(90deg, #d8ceb9, #cabfa6);
+  --wall-t-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  --wall-b-shadow: inset 0 -1px 0 rgba(0,0,0,0.18);
+
+  /* Tapa (4) */
+  --dish-radius: 9px;
+  --dish-bg: radial-gradient(120% 105% at 50% 30%, #f6f0e4 0%, #eae2d3 56%, #d3c9b3 100%);
+  --dish-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -3px 6px rgba(150,135,100,0.35);
+  --dish-border: none;
+
+  /* Leyenda */
+  --legend-font: var(--font-display);
+  --legend-size: clamp(1.4rem, 7vw, 2rem);
+  --legend-weight: 800;
+  --legend-ink: #35312a;
+  --legend-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  --mark-ink: rgba(28, 46, 36, 0.62);
+
+  /* Estado: SELECTED (arrastre) */
+  --sel-socket-bg: var(--socket-bg);
+  --sel-socket-shadow: var(--socket-shadow);
+  --sel-body-inset: 7px 4px 5px 4px;
+  --sel-body-bg: #f1d89c;
+  --sel-body-shadow: 0 2px 0 rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.4), 0 0 22px rgba(255,184,56,0.6), 0 0 48px rgba(255,184,56,0.38);
+  --sel-wall-t: linear-gradient(180deg, #fff1d2, #ffe1a3);
+  --sel-wall-b: linear-gradient(180deg, #d9a63e, #b9832a);
+  --sel-wall-l: linear-gradient(90deg, #e6b754, #ffcf7a);
+  --sel-wall-r: linear-gradient(90deg, #ffcf7a, #e6b754);
+  --sel-dish-bg: radial-gradient(120% 105% at 50% 30%, #fff9e8 0%, #ffdd94 55%, #f0b13e 100%);
+  --sel-dish-shadow: inset 0 2px 3px rgba(255,255,255,0.7), inset 0 -6px 10px rgba(150,95,10,0.4), 0 0 12px rgba(255,190,70,0.55);
+  --sel-legend-ink: #5b3d08;
+  --sel-legend-shadow: 0 1px 0 rgba(255,255,255,0.55);
+
+  /* Estado: VALID (acierto) */
+  --ok-socket-bg: var(--socket-bg);
+  --ok-socket-shadow: var(--socket-shadow);
+  --ok-body-bg: var(--body-bg);
+  --ok-body-shadow: var(--body-shadow);
+  --ok-wall-t: var(--wall-t);
+  --ok-wall-b: var(--wall-b);
+  --ok-wall-l: var(--wall-l);
+  --ok-wall-r: var(--wall-r);
+  --ok-dish-bg: radial-gradient(58% 52% at 50% 50%, rgba(47,168,87,0.6) 0%, rgba(47,168,87,0.12) 48%, transparent 72%), radial-gradient(120% 105% at 50% 30%, #f6f0e4 0%, #eae2d3 56%, #d3c9b3 100%);
+  --ok-dish-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -3px 6px rgba(150,135,100,0.35), 0 0 12px rgba(47,168,87,0.4);
+  --ok-legend-ink: #1f9e48;
+  --ok-legend-shadow: 0 0 8px rgba(47,168,87,0.95), 0 0 18px rgba(47,168,87,0.6), 0 1px 0 rgba(255,255,255,0.35);
+  --ok-anim: typoPulse 0.48s ease;
+
+  /* Estado: INVALID (error) */
+  --err-socket-bg: var(--socket-bg);
+  --err-socket-shadow: var(--socket-shadow);
+  --err-body-bg: #c8352c;
+  --err-body-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 5px 12px rgba(200,53,44,0.5), 0 0 20px rgba(210,50,42,0.6);
+  --err-wall-t: linear-gradient(180deg, #e0645b, #c8352c);
+  --err-wall-b: linear-gradient(180deg, #9c211b, #7f1c17);
+  --err-wall-l: linear-gradient(90deg, #b32a23, #c8352c);
+  --err-wall-r: linear-gradient(90deg, #c8352c, #b32a23);
+  --err-dish-bg: radial-gradient(120% 105% at 50% 30%, #e0645b 0%, #c8352c 56%, #9c211b 100%);
+  --err-dish-shadow: inset 0 2px 3px rgba(255,255,255,0.28), inset 0 -6px 10px rgba(70,8,5,0.45);
+  --err-legend-ink: #ffdad6;
+  --err-legend-shadow: none;
+  --err-anim: typoShake 0.4s ease;
+
+  /* Estado: DUP (repetida) */
+  --dup-body-bg: #d97706;
+  --dup-body-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 7px 18px rgba(217,119,6,0.5), 0 0 24px color-mix(in srgb, var(--dup), transparent 40%);
+  --dup-wall-t: linear-gradient(180deg, #f7bd63, #e0850f);
+  --dup-wall-b: linear-gradient(180deg, #a35606, #6f3d08);
+  --dup-wall-l: linear-gradient(90deg, #b8680a, #d97706);
+  --dup-wall-r: linear-gradient(90deg, #d97706, #b8680a);
+  --dup-dish-bg: radial-gradient(120% 105% at 50% 30%, #f7bd63 0%, #e0850f 56%, #b8680a 100%);
+  --dup-dish-shadow: inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -6px 10px rgba(60,40,4,0.4);
+  --dup-legend-ink: #fff;
+  --dup-legend-shadow: none;
+  --dup-anim: typoPulse 0.48s ease;
+
+  /* Capas extra que solo usan algunas skins (default: apagadas) */
+  --key-behind: none;      /* ráfaga/halo detrás de la tecla */
+  --key-behind-inset: 0;
+  --key-behind-mask: none;
+
+  /* HUD / marcadores (TIEMPO · PUNTOS · PALABRAS) — valores default = los de antes */
+  --stat-radius: 8px;
+  --stat-bg: linear-gradient(180deg, #f0e9db, #d8cdb4);
+  --stat-border: 1px solid #b6aa8c;
+  --stat-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 3px 0 #a89b7d, 0 5px 7px rgba(0, 0, 0, 0.4);
+  --stat-label-ink: #8a7d5f;
+  --stat-value-ink: #35312a;
+
   --font-pixel: "Space Grotesk", "Segoe UI", sans-serif;
 }
 
@@ -192,11 +317,10 @@ body {
   justify-content: center;
   gap: 1px;
   padding: 5px 2px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #f0e9db, #d8cdb4);
-  border: 1px solid #b6aa8c;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 3px 0 #a89b7d,
-    0 5px 7px rgba(0, 0, 0, 0.4);
+  border-radius: var(--stat-radius);
+  background: var(--stat-bg);
+  border: var(--stat-border);
+  box-shadow: var(--stat-shadow);
 }
 
 .stat-label {
@@ -205,7 +329,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.11em;
-  color: #8a7d5f;
+  color: var(--stat-label-ink);
 }
 
 .stat-value {
@@ -213,7 +337,7 @@ body {
   font-size: 1.15rem;
   font-weight: 800;
   line-height: 1;
-  color: #35312a;
+  color: var(--stat-value-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -340,242 +464,169 @@ body {
   stroke-linejoin: round;
 }
 
-/* Tablero: placa crema ABS (chasis) con textura porosa; los sockets oscuros
-   se asientan encima. Tomado del boardStyle de Typo.dc.html. */
+/* ═══════════════════════════════════════════════════════════════════════
+   TABLERO — 100% tokenizado. Ni un solo color literal debajo de esta linea.
+   La geometria (6 capas: socket > cuerpo > 4 paredes > tapa) NO cambia entre
+   skins; solo cambian los tokens.
+   ═══════════════════════════════════════════════════════════════════════ */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+  gap: var(--plate-gap);
   width: 100%;
   aspect-ratio: 1;
-  padding: 16px;
-  border-radius: 24px;
-  border: 1px solid rgba(170, 158, 122, calc(var(--plate-opacity) + 0.3));
-  /* placa crema translúcida (cristal frostado): deja ver la motherboard detrás */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    linear-gradient(
-      160deg,
-      rgba(228, 219, 196, var(--plate-opacity)),
-      rgba(210, 200, 172, calc(var(--plate-opacity) * 0.96)) 58%,
-      rgba(188, 176, 144, calc(var(--plate-opacity) * 0.9))
-    );
-  background-size: 120px 120px, 100% 100%;
-  backdrop-filter: blur(3px) saturate(1.05);
-  -webkit-backdrop-filter: blur(3px) saturate(1.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -3px 10px rgba(92, 80, 52, 0.3), 0 22px 46px rgba(0, 0, 0, 0.5);
+  padding: var(--plate-pad);
+  border-radius: var(--plate-radius);
+  border: var(--plate-border);
+  background-image: var(--plate-tex), var(--plate-bg);
+  background-size: var(--plate-tex-size), 100% 100%;
+  backdrop-filter: var(--plate-blur);
+  -webkit-backdrop-filter: var(--plate-blur);
+  box-shadow: var(--plate-shadow);
+  filter: var(--plate-filter);
   touch-action: none;
   user-select: none;
 }
 
-/* ——— Keycap 3D (6 capas, tomado de Typo.dc.html): socket + cuerpo + 4 paredes
-   biseladas (trapecios con clip-path) + tapa cóncava. El relieve NO depende de
-   JS: las aristas las dan las costuras entre los trapecios. ——— */
-
-/* 1) SOCKET: el hueco hundido donde se asienta la tecla */
+/* 1) SOCKET */
 .cell {
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: 19px;
-  background: linear-gradient(160deg, #332e25, #231f18);
-  box-shadow: inset 0 5px 11px rgba(0, 0, 0, 0.72),
-    inset 0 -2px 0 rgba(255, 255, 255, 0.08);
+  border-radius: var(--socket-radius);
+  background: var(--socket-bg);
+  box-shadow: var(--socket-shadow);
+  border: var(--socket-border);
   cursor: pointer;
   touch-action: none;
   user-select: none;
   transition: background 0.14s ease;
 }
+/* capa detras de la tecla (rafaga manga, halo neon, etc). Apagada por default. */
+.cell::before {
+  content: "";
+  position: absolute;
+  inset: var(--key-behind-inset);
+  z-index: 0;
+  pointer-events: none;
+  background: var(--key-behind);
+  -webkit-mask: var(--key-behind-mask);
+  mask: var(--key-behind-mask);
+}
 
-/* 2) CUERPO: dentro del socket, con espacio de viaje abajo (se hunde al pulsar) */
+/* 2) CUERPO */
 .cell__body {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  top: 4px;
-  bottom: 9px;
-  border-radius: 14px;
+  inset: var(--body-inset);
+  border-radius: var(--body-radius);
   overflow: hidden;
-  background: #c7bca3;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 7px 12px rgba(0, 0, 0, 0.5);
-  transition: top 0.1s ease, bottom 0.1s ease, box-shadow 0.14s ease;
+  z-index: 2;
+  background: var(--body-bg);
+  box-shadow: var(--body-shadow);
+  border: var(--body-border);
+  transition: inset 0.1s ease, box-shadow 0.14s ease;
 }
 
-/* 3) CUATRO PAREDES BISELADAS (trapecios) — dan las aristas verticales */
-.cell__f {
-  position: absolute;
-  inset: 0;
-}
+/* 3) CUATRO PAREDES BISELADAS */
+.cell__f { position: absolute; inset: 0; }
 .cell__ft {
   clip-path: polygon(0% 0%, 100% 0%, 87% 10%, 13% 10%);
-  background: linear-gradient(180deg, #f1e9d9, #e0d6c0);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  background: var(--wall-t);
+  box-shadow: var(--wall-t-shadow);
 }
 .cell__fb {
   clip-path: polygon(0% 100%, 100% 100%, 87% 83%, 13% 83%);
-  background: linear-gradient(180deg, #cabfa6, #b3a488);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  background: var(--wall-b);
+  box-shadow: var(--wall-b-shadow);
 }
 .cell__fl {
   clip-path: polygon(0% 0%, 13% 10%, 13% 83%, 0% 100%);
-  background: linear-gradient(90deg, #cabfa6, #d8ceb9);
+  background: var(--wall-l);
 }
 .cell__fr {
   clip-path: polygon(100% 0%, 87% 10%, 87% 83%, 100% 100%);
-  background: linear-gradient(90deg, #d8ceb9, #cabfa6);
+  background: var(--wall-r);
 }
 
-/* 4) TAPA CÓNCAVA (dish) con la letra */
+/* 4) TAPA CONCAVA */
 .cell__face {
   position: absolute;
   left: 13%;
   right: 13%;
   top: 10%;
   bottom: 17%;
-  border-radius: 9px;
-  background: radial-gradient(120% 105% at 50% 30%, #f6f0e4 0%, #eae2d3 56%, #d3c9b3 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -3px 6px rgba(150, 135, 100, 0.35);
+  border-radius: var(--dish-radius);
+  background: var(--dish-bg);
+  box-shadow: var(--dish-shadow);
+  border: var(--dish-border);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .key-legend {
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 7vw, 2rem);
-  font-weight: 800;
-  color: #35312a;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  font-family: var(--legend-font);
+  font-size: var(--legend-size);
+  font-weight: var(--legend-weight);
+  color: var(--legend-ink);
+  text-shadow: var(--legend-shadow);
   pointer-events: none;
 }
 
-/* Valor de la letra (dificultad), estilo ficha: esquina inferior derecha */
 .key-mark {
   position: absolute;
   right: 7px;
   bottom: 5px;
+  z-index: 3;
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
-  color: rgba(28, 46, 36, 0.62);
+  color: var(--mark-ink);
   pointer-events: none;
 }
-
 .cell.selected .key-mark,
 .cell.valid .key-mark,
 .cell.invalid .key-mark,
-.cell.dup .key-mark {
-  display: none;
-}
+.cell.dup .key-mark { display: none; }
 
-/* Selección (arrastre): la tecla se RETROILUMINA en ámbar (backlit) */
-.cell.selected .cell__body {
-  top: 7px;
-  bottom: 5px;
-  background: #f1d89c;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4),
-    0 0 22px rgba(255, 184, 56, 0.6), 0 0 48px rgba(255, 184, 56, 0.38);
-}
-.cell.selected .cell__ft {
-  background: linear-gradient(180deg, #fff1d2, #ffe1a3);
-}
-.cell.selected .cell__fb {
-  background: linear-gradient(180deg, #d9a63e, #b9832a);
-}
-.cell.selected .cell__fl {
-  background: linear-gradient(90deg, #e6b754, #ffcf7a);
-}
-.cell.selected .cell__fr {
-  background: linear-gradient(90deg, #ffcf7a, #e6b754);
-}
-.cell.selected .cell__face {
-  background: radial-gradient(120% 105% at 50% 30%, #fff9e8 0%, #ffdd94 55%, #f0b13e 100%);
-  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -6px 10px rgba(150, 95, 10, 0.4), 0 0 12px rgba(255, 190, 70, 0.55);
-}
-.cell.selected .key-legend {
-  color: #5b3d08;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
-}
+/* ── ESTADO: arrastre ── */
+.cell.selected { background: var(--sel-socket-bg); box-shadow: var(--sel-socket-shadow); }
+.cell.selected .cell__body { inset: var(--sel-body-inset); background: var(--sel-body-bg); box-shadow: var(--sel-body-shadow); }
+.cell.selected .cell__ft { background: var(--sel-wall-t); }
+.cell.selected .cell__fb { background: var(--sel-wall-b); }
+.cell.selected .cell__fl { background: var(--sel-wall-l); }
+.cell.selected .cell__fr { background: var(--sel-wall-r); }
+.cell.selected .cell__face { background: var(--sel-dish-bg); box-shadow: var(--sel-dish-shadow); }
+.cell.selected .key-legend { color: var(--sel-legend-ink); text-shadow: var(--sel-legend-shadow); }
 
-/* Correcta (palabra nueva): se retroilumina VERDE solo la LETRA; la tecla
-   sigue crema. Un charco de luz verde detrás de la letra + pulse de feedback. */
-.cell.valid .cell__body {
-  animation: typoPulse 0.48s ease;
-}
-.cell.valid .cell__face {
-  background: radial-gradient(
-      58% 52% at 50% 50%,
-      rgba(47, 168, 87, 0.6) 0%,
-      rgba(47, 168, 87, 0.12) 48%,
-      transparent 72%
-    ),
-    radial-gradient(120% 105% at 50% 30%, #f6f0e4 0%, #eae2d3 56%, #d3c9b3 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -3px 6px rgba(150, 135, 100, 0.35), 0 0 12px rgba(47, 168, 87, 0.4);
-}
-.cell.valid .key-legend {
-  color: #1f9e48;
-  text-shadow: 0 0 8px rgba(47, 168, 87, 0.95),
-    0 0 18px rgba(47, 168, 87, 0.6), 0 1px 0 rgba(255, 255, 255, 0.35);
-}
+/* ── ESTADO: acierto ── */
+.cell.valid { background: var(--ok-socket-bg); box-shadow: var(--ok-socket-shadow); }
+.cell.valid .cell__body { background: var(--ok-body-bg); box-shadow: var(--ok-body-shadow); animation: var(--ok-anim); }
+.cell.valid .cell__ft { background: var(--ok-wall-t); }
+.cell.valid .cell__fb { background: var(--ok-wall-b); }
+.cell.valid .cell__fl { background: var(--ok-wall-l); }
+.cell.valid .cell__fr { background: var(--ok-wall-r); }
+.cell.valid .cell__face { background: var(--ok-dish-bg); box-shadow: var(--ok-dish-shadow); }
+.cell.valid .key-legend { color: var(--ok-legend-ink); text-shadow: var(--ok-legend-shadow); }
 
-/* Inválida: rojo error + shake (no salta, solo vibra) */
-.cell.invalid .cell__body {
-  background: #c8352c;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 5px 12px rgba(200, 53, 44, 0.5),
-    0 0 20px rgba(210, 50, 42, 0.6);
-  animation: typoShake 0.4s ease;
-}
-.cell.invalid .cell__ft {
-  background: linear-gradient(180deg, #e0645b, #c8352c);
-}
-.cell.invalid .cell__fb {
-  background: linear-gradient(180deg, #9c211b, #7f1c17);
-}
-.cell.invalid .cell__fl {
-  background: linear-gradient(90deg, #b32a23, #c8352c);
-}
-.cell.invalid .cell__fr {
-  background: linear-gradient(90deg, #c8352c, #b32a23);
-}
-.cell.invalid .cell__face {
-  background: radial-gradient(120% 105% at 50% 30%, #e0645b 0%, #c8352c 56%, #9c211b 100%);
-  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.28),
-    inset 0 -6px 10px rgba(70, 8, 5, 0.45);
-}
-.cell.invalid .key-legend {
-  color: #ffdad6;
-}
+/* ── ESTADO: error ── */
+.cell.invalid { background: var(--err-socket-bg); box-shadow: var(--err-socket-shadow); }
+.cell.invalid .cell__body { background: var(--err-body-bg); box-shadow: var(--err-body-shadow); animation: var(--err-anim); }
+.cell.invalid .cell__ft { background: var(--err-wall-t); }
+.cell.invalid .cell__fb { background: var(--err-wall-b); }
+.cell.invalid .cell__fl { background: var(--err-wall-l); }
+.cell.invalid .cell__fr { background: var(--err-wall-r); }
+.cell.invalid .cell__face { background: var(--err-dish-bg); box-shadow: var(--err-dish-shadow); }
+.cell.invalid .key-legend { color: var(--err-legend-ink); text-shadow: var(--err-legend-shadow); }
 
-/* Repetida: ámbar informativo + pulse */
-.cell.dup .cell__body {
-  background: #d97706;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 7px 18px rgba(217, 119, 6, 0.5),
-    0 0 24px color-mix(in srgb, var(--dup), transparent 40%);
-  animation: typoPulse 0.48s ease;
-}
-.cell.dup .cell__ft {
-  background: linear-gradient(180deg, #f7bd63, #e0850f);
-}
-.cell.dup .cell__fb {
-  background: linear-gradient(180deg, #a35606, #6f3d08);
-}
-.cell.dup .cell__fl {
-  background: linear-gradient(90deg, #b8680a, #d97706);
-}
-.cell.dup .cell__fr {
-  background: linear-gradient(90deg, #d97706, #b8680a);
-}
-.cell.dup .cell__face {
-  background: radial-gradient(120% 105% at 50% 30%, #f7bd63 0%, #e0850f 56%, #b8680a 100%);
-  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -6px 10px rgba(60, 40, 4, 0.4);
-}
-.cell.dup .key-legend {
-  color: #fff;
-}
+/* ── ESTADO: repetida ── */
+.cell.dup .cell__body { background: var(--dup-body-bg); box-shadow: var(--dup-body-shadow); animation: var(--dup-anim); }
+.cell.dup .cell__ft { background: var(--dup-wall-t); }
+.cell.dup .cell__fb { background: var(--dup-wall-b); }
+.cell.dup .cell__fl { background: var(--dup-wall-l); }
+.cell.dup .cell__fr { background: var(--dup-wall-r); }
+.cell.dup .cell__face { background: var(--dup-dish-bg); box-shadow: var(--dup-dish-shadow); }
+.cell.dup .key-legend { color: var(--dup-legend-ink); text-shadow: var(--dup-legend-shadow); }
 
 @keyframes typoPulse {
   0% {
