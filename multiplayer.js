@@ -211,14 +211,43 @@
   startBtn && startBtn.addEventListener("click", () => sendMsg("start", {}));
   // Compartir el código con la hoja nativa (NO manda la app a segundo plano → no corta la conexión)
   $("mp-share") && $("mp-share").addEventListener("click", async () => {
-    const link = location.href.split("#")[0];
-    const text = "¡Te reto a un duelo en Typo! ⚔️\nCódigo de sala: " + (code || "") + "\n" + link;
+    const base = location.href.split("?")[0].split("#")[0];
+    const url = base + "?sala=" + (code || "");            // el link YA lleva el código
+    const text = "¡Te reto a un duelo en Typo! ⚔️ Toca para entrar:\n" + url;
     try {
-      if (navigator.share) await navigator.share({ title: "Typo — duelo en vivo", text });
-      else { await navigator.clipboard.writeText(text); showErr("Copiado ✓ pégalo en WhatsApp"); }
+      if (navigator.share) await navigator.share({ title: "Typo — duelo en vivo", text, url });
+      else { await navigator.clipboard.writeText(text); showErr("Link copiado ✓ pégalo en WhatsApp"); }
     } catch (e) { /* el usuario canceló el compartir */ }
   });
   $("mp-close") && $("mp-close").addEventListener("click", () => { leaveRoom(); overlay.hidden = true; resetToHome(); });
   $("mp-again") && $("mp-again").addEventListener("click", () => { resultsOv.hidden = true; renderLobby(); });
   $("mp-exit") && $("mp-exit").addEventListener("click", () => { leaveRoom(); resultsOv.hidden = true; if (window.TypoOnline) window.TypoOnline.quit(); });
+
+  // Si el link trae ?sala=CODE (compartido), entra directo al lobby y se une.
+  (function autoJoinFromUrl() {
+    var sala;
+    try { sala = new URLSearchParams(location.search).get("sala"); } catch (e) { sala = null; }
+    if (!sala) return;
+    var c = String(sala).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+    if (c.length !== 4) return;
+    var go = function () {
+      var sp = document.getElementById("splash");
+      if (sp) sp.classList.add("hidden");
+      if ($("help-overlay")) $("help-overlay").hidden = true;
+      openOverlay();
+      codeIn.value = c;
+      var nick = "";
+      try { nick = (localStorage.getItem("typo-nick") || "").trim(); } catch (e) {}
+      if (nick) {
+        nickIn.value = nick;
+        lastRoom = { code: c, nick: nick };
+        connect(function () { sendMsg("join_room", { code: c, nick: nick, handicap: myHandicap(), pid: PID }); });
+      } else {
+        nickIn.focus();
+        showErr("Pon tu nombre y toca Unirse para entrar a la sala " + c);
+      }
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go);
+    else setTimeout(go, 50);
+  })();
 })();
