@@ -378,19 +378,33 @@
   function isManga() {
     return document.documentElement.getAttribute("data-skin") === "manga";
   }
-  // Acierto estilo anime: golpe de impacto + destello "kirakira" ascendente.
-  function playSuccessManga() {
-    tone(170, 0, 0.14, "sine", 0.3);        // golpe grave (DON)
-    blip(0.05, 1568, 0.09, "sine", 0.1);
-    blip(0.11, 2093, 0.09, "sine", 0.1);
-    blip(0.17, 2637, 0.12, "sine", 0.11);
-    blip(0.21, 3520, 0.14, "sine", 0.08);   // chispa
+  // Barrido de frecuencia (whoosh / carga anime).
+  function sweep(f0, f1, startIn, dur, type, vol) {
+    if (!audioCtx || muted) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t = audioCtx.currentTime + (startIn || 0);
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || "sawtooth";
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.03);
   }
-  // Error estilo anime: "chiin" cómico descendente.
+  // Acierto estilo anime: "whoosh" de carga ascendente + campanitas kirakira.
+  function playSuccessManga() {
+    sweep(300, 1500, 0, 0.16, "sawtooth", 0.13); // carga que sube
+    blip(0.13, 2093, 0.1, "sine", 0.11);
+    blip(0.19, 2637, 0.1, "sine", 0.12);
+    blip(0.25, 3520, 0.16, "sine", 0.1);         // destello
+    blip(0.27, 4699, 0.14, "sine", 0.06);        // chispa muy aguda
+  }
+  // Error estilo anime: "chiin" cómico — barrido que cae + campana que se apaga.
   function playFailManga() {
-    tone(660, 0, 0.12, "triangle", 0.14);
-    tone(440, 0.1, 0.16, "triangle", 0.13);
-    tone(294, 0.22, 0.3, "sine", 0.13);
+    sweep(540, 150, 0, 0.5, "triangle", 0.13);
+    blip(0.0, 392, 0.42, "sine", 0.1);
   }
   // Sonido final cuando se acaba el tiempo (suena junto con ir a resultados).
   function playTimeUp() {
