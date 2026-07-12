@@ -10,6 +10,17 @@
   const $ = (id) => document.getElementById(id);
   let ws = null, youId = null, code = null, hostId = null, players = [], isHost = false;
 
+  // Identidad persistente del jugador (sobrevive reconexiones y cambios de app)
+  let PID;
+  try {
+    PID = localStorage.getItem("typo-pid");
+    if (!PID) { PID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "p" + Date.now() + "-" + Math.floor(Math.random() * 1e9); localStorage.setItem("typo-pid", PID); }
+  } catch (e) { PID = "p" + Date.now(); }
+
+  let lastRoom = null;         // { code, nick } para reconectar
+  let intentionalClose = false;
+  let reconnectTimer = null;
+
   // ——— refs ———
   const overlay = $("mp-overlay");
   const homeEl = $("mp-home");
@@ -44,13 +55,33 @@
   }
 
   function connect(then) {
-    try { if (ws) ws.close(); } catch (e) {}
+    try { if (ws) { ws.onclose = null; ws.close(); } } catch (e) {}
+    intentionalClose = false;
     ws = new WebSocket(SERVER_URL);
     ws.onopen = () => then && then();
     ws.onmessage = (e) => { try { handle(JSON.parse(e.data)); } catch (err) {} };
-    ws.onerror = () => showErr("Sin conexión con el servidor. Intenta de nuevo.");
-    ws.onclose = () => {};
+    ws.onerror = () => {};
+    ws.onclose = () => { scheduleReconnect(); };
   }
+
+  // Reconexión automática: al cerrarse la conexión (p.ej. cambiaste de app para
+  // compartir el código, o se durmió la pantalla) reintenta unirse a la sala.
+  function scheduleReconnect() {
+    if (intentionalClose || !lastRoom || !lastRoom.code) return;
+    if (reconnectTimer) return;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      if (ws && ws.readyState === 1) return;
+      connect(() => sendMsg("join_room", { code: lastRoom.code, nick: lastRoom.nick, pid: PID, handicap: myHandicap() }));
+    }, 700);
+  }
+  // Al volver a la app, reconecta de inmediato si hace falta.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && lastRoom && lastRoom.code && (!ws || ws.readyState !== 1)) {
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+      connect(() => sendMsg("join_room", { code: lastRoom.code, nick: lastRoom.nick, pid: PID, handicap: myHandicap() }));
+    }
+  });
   function sendMsg(type, data) {
     if (ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type }, data || {})));
   }
@@ -61,7 +92,9 @@
         if (m.youId) youId = m.youId;
         code = m.code; hostId = m.host; players = m.players;
         isHost = youId === hostId;
-        renderLobby();
+        lastRoom = { code: m.code, nick: (lastRoom && lastRoom.nick) || (nickIn.value || "").trim() };
+        // Si el duelo ya está en curso no mostramos el lobby encima (llega board después).
+        if (scorebar.hidden) renderLobby();
         break;
       case "board":
         // deadline local = mi reloj + los ms restantes que dice el servidor
@@ -157,17 +190,35 @@
   }
 
   // ——— wiring ———
+  function leaveRoom() {
+    intentionalClose = true;
+    lastRoom = null;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    sendMsg("leave", {});
+    try { if (ws) { ws.onclose = null; ws.close(); } } catch (e) {}
+  }
+
   $("mp-open") && $("mp-open").addEventListener("click", () => { if ($("help-overlay")) $("help-overlay").hidden = true; openOverlay(); });
-  $("mp-create") && $("mp-create").addEventListener("click", () => { clearErr(); connect(() => sendMsg("create_room", { nick: getNick(), handicap: myHandicap() })); });
+  $("mp-create") && $("mp-create").addEventListener("click", () => { clearErr(); lastRoom = { code: null, nick: getNick() }; connect(() => sendMsg("create_room", { nick: getNick(), handicap: myHandicap(), pid: PID })); });
   $("mp-join") && $("mp-join").addEventListener("click", () => {
     clearErr();
     const c = (codeIn.value || "").trim().toUpperCase();
     if (c.length !== 4) return showErr("El código es de 4 caracteres.");
-    connect(() => sendMsg("join_room", { code: c, nick: getNick(), handicap: myHandicap() }));
+    lastRoom = { code: c, nick: getNick() };
+    connect(() => sendMsg("join_room", { code: c, nick: getNick(), handicap: myHandicap(), pid: PID }));
   });
   codeIn && codeIn.addEventListener("input", () => { codeIn.value = codeIn.value.toUpperCase(); });
   startBtn && startBtn.addEventListener("click", () => sendMsg("start", {}));
-  $("mp-close") && $("mp-close").addEventListener("click", () => { sendMsg("leave", {}); try { ws && ws.close(); } catch (e) {} overlay.hidden = true; resetToHome(); });
+  // Compartir el código con la hoja nativa (NO manda la app a segundo plano → no corta la conexión)
+  $("mp-share") && $("mp-share").addEventListener("click", async () => {
+    const link = location.href.split("#")[0];
+    const text = "¡Te reto a un duelo en Typo! ⚔️\nCódigo de sala: " + (code || "") + "\n" + link;
+    try {
+      if (navigator.share) await navigator.share({ title: "Typo — duelo en vivo", text });
+      else { await navigator.clipboard.writeText(text); showErr("Copiado ✓ pégalo en WhatsApp"); }
+    } catch (e) { /* el usuario canceló el compartir */ }
+  });
+  $("mp-close") && $("mp-close").addEventListener("click", () => { leaveRoom(); overlay.hidden = true; resetToHome(); });
   $("mp-again") && $("mp-again").addEventListener("click", () => { resultsOv.hidden = true; renderLobby(); });
-  $("mp-exit") && $("mp-exit").addEventListener("click", () => { sendMsg("leave", {}); try { ws && ws.close(); } catch (e) {} resultsOv.hidden = true; if (window.TypoOnline) window.TypoOnline.quit(); });
+  $("mp-exit") && $("mp-exit").addEventListener("click", () => { leaveRoom(); resultsOv.hidden = true; if (window.TypoOnline) window.TypoOnline.quit(); });
 })();

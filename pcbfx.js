@@ -9,6 +9,10 @@
   if (!ctx) return;
 
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Equipos modestos (muchos Android): menos partículas para no tanquear el fps.
+  var lowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 6) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
+  var FRAME_MS = 32; // ~30 fps (el efecto ambiental no necesita 60)
 
   var W = 0, H = 0, DPR = 1;
   var traces = [];
@@ -80,7 +84,8 @@
 
   function rebuild() {
     var area = W * H;
-    var count = Math.max(10, Math.min(26, Math.round(area / 32000)));
+    var cap = lowEnd ? 12 : 26;
+    var count = Math.max(lowEnd ? 7 : 10, Math.min(cap, Math.round(area / 32000)));
     traces = [];
     pulses = [];
     for (var i = 0; i < count; i++) {
@@ -88,7 +93,7 @@
       if (tr.total > 40) {
         traces.push(tr);
         pulses.push(spawnPulse(tr));
-        if (Math.random() < 0.6) pulses.push(spawnPulse(tr));
+        if (!lowEnd && Math.random() < 0.6) pulses.push(spawnPulse(tr));
       }
     }
   }
@@ -126,22 +131,26 @@
     drawTraces();
   }
 
-  function frame() {
+  function frame(t) {
+    raf = requestAnimationFrame(frame);
+    if (t - lastT < FRAME_MS) return; // cap ~30 fps
+    lastT = t;
+
     ctx.clearRect(0, 0, W, H);
     drawTraces();
     ctx.globalCompositeOperation = "lighter";
+    var samples = lowEnd ? 5 : 7;
+    // Estela SIN shadowBlur (el aditivo ya da glow); el blur solo va en la cabeza.
+    ctx.shadowBlur = 0;
     for (var i = 0; i < pulses.length; i++) {
       var p = pulses[i];
       p.pos += p.speed;
       if (p.pos > p.trace.total + p.tail) {
-        // reaparece en otra traza para que la red parezca viva
         var tr = traces[(Math.random() * traces.length) | 0] || p.trace;
         pulses[i] = spawnPulse(tr);
         continue;
       }
-      // estela: varios puntos detrás de la cabeza, desvaneciéndose
       var head = p.pos;
-      var samples = 10;
       for (var k = 0; k < samples; k++) {
         var back = head - (k / samples) * p.tail;
         if (back < 0) break;
@@ -150,29 +159,28 @@
         var r = 2.8 * a + 0.6;
         ctx.beginPath();
         ctx.fillStyle = p.color;
-        ctx.globalAlpha = 0.1 + 0.4 * a;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 13 * a;
+        ctx.globalAlpha = 0.12 + 0.45 * a;
         ctx.arc(pt[0], pt[1], r, 0, Math.PI * 2);
         ctx.fill();
       }
-      // cabeza brillante
+      // cabeza brillante (único con shadowBlur)
       var hp = pointAt(p.trace, Math.min(head, p.trace.total));
       ctx.beginPath();
       ctx.fillStyle = "#eafff7";
       ctx.globalAlpha = 0.9;
       ctx.shadowColor = p.color;
-      ctx.shadowBlur = 16;
+      ctx.shadowBlur = lowEnd ? 8 : 14;
       ctx.arc(hp[0], hp[1], 2.4, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
     }
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
     ctx.globalCompositeOperation = "source-over";
-    raf = requestAnimationFrame(frame);
   }
 
   var raf = null;
+  var lastT = 0;
   function start() { if (!reduce && raf == null) raf = requestAnimationFrame(frame); }
   function stop() { if (raf != null) { cancelAnimationFrame(raf); raf = null; } }
 
