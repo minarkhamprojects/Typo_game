@@ -20,50 +20,66 @@
   function apply(skin) {
     document.documentElement.setAttribute("data-skin", skin);
     try { localStorage.setItem(KEY, skin); } catch (e) {}
-    if (skin === "manga") mountSfx(); else unmountSfx();
   }
 
-  /* ── SFX de manga: el acierto grita ────────────────────────────────────── */
-  var SFX = ["¡DON!", "¡ZUN!", "¡BAN!", "¡GOU!", "¡DOGA!", "¡ZUSHI!"];
-  var observer = null;
-  var lastShout = 0;
+  /* ── Celebración por palabra (la que grita "¡DON!" / "¡BRUTAL!") ──────────
+     game.js avisa vía window.TypoCelebrate(word); el SKIN decide el mensaje.
+     Criterio por longitud:
+       3 letras  → nada
+       4 letras  → a veces (mensaje suave)
+       5-6       → siempre (medio)
+       7+        → siempre (grande, entre más larga más épico)                 */
+  var MESSAGES = {
+    "default": {
+      mild:   ["¡BIEN!", "¡VA!", "¡ESO!", "¡SÍ!"],
+      medium: ["¡GENIAL!", "¡CRACK!", "¡ESO ES!", "¡MUY BIEN!", "¡GRANDE!"],
+      big:    ["¡BRUTAL!", "¡INCREÍBLE!", "¡MAESTRO!", "¡IMPARABLE!", "¡ESPECTACULAR!", "¡LEYENDA!"]
+    },
+    "manga": {
+      mild:   ["¡DON!", "¡ZUN!", "¡BAN!"],
+      medium: ["¡GOU!", "¡DOGA!", "¡ZUSHI!", "¡BOOM!", "¡GASHIN!"],
+      big:    ["¡DODON!", "¡GOGOGO!", "¡ZUDAAAN!", "¡BAKUUN!", "¡DOGYAAAN!"]
+    }
+  };
+  // Easter eggs de anime: aparecen de vez en cuando (manga, palabras de 5+).
+  var ANIME_EGGS = ["¡NANI?!", "¡SUGOI!", "¡SENPAI!", "¡KAWAII!", "¡YOSH!", "¡ITADAKIMASU!", "¡OMAE WA MOU...!", "¡KAWARIMI!"];
 
-  function shout(el) {
-    var now = Date.now();
-    if (now - lastShout < 350) return;   // una palabra = un grito, no uno por letra
-    lastShout = now;
+  function pick(a) { return a[(Math.random() * a.length) | 0]; }
 
-    var r = el.getBoundingClientRect();
+  window.TypoCelebrate = function (word) {
+    var len = (word || "").length;
+    if (len <= 3) return;                       // 3 letras: nada
+    var skin = current();
+    var pool = MESSAGES[skin] || MESSAGES["default"];
+    var tier, size;
+    if (len === 4) {
+      if (Math.random() > 0.55) return;         // 4 letras: solo a veces
+      tier = pool.mild; size = 1.9;
+    } else if (len <= 6) {
+      tier = pool.medium; size = 2.5;
+    } else {
+      tier = pool.big; size = Math.min(4.2, 2.8 + (len - 6) * 0.35); // entre más larga, más grande
+    }
+    var host = document.getElementById("grid-wrap") || document.body;
+    var r = host.getBoundingClientRect();
+    var msg = pick(tier);
+    if (skin === "manga" && len >= 5 && Math.random() < 0.16) msg = pick(ANIME_EGGS); // easter egg
     var n = document.createElement("div");
     n.className = "typo-sfx";
-    n.textContent = SFX[(Math.random() * SFX.length) | 0];
-    n.style.fontSize = (1.9 + Math.random() * 1.3).toFixed(2) + "rem";
-    n.style.left = (r.left + r.width * 0.3) + "px";
-    n.style.top = (r.top - 18) + "px";
+    n.textContent = msg;
+    n.style.fontSize = size.toFixed(2) + "rem";
+    n.style.left = (r.left + r.width * (0.18 + Math.random() * 0.4)) + "px";
+    n.style.top = (r.top + r.height * (0.12 + Math.random() * 0.28)) + "px";
+    if (skin === "manga") {
+      // guiño de color manga→anime: las palabras grandes salen a todo color
+      var hue = (Math.random() * 360) | 0;
+      n.style.setProperty("--sfx-color", "hsl(" + hue + ", 90%, 55%)");
+      if (len >= 7) n.classList.add("epic");
+    }
     document.body.appendChild(n);
     requestAnimationFrame(function () { n.classList.add("go"); });
     setTimeout(function () { n.remove(); }, 1100);
-  }
-
-  function mountSfx() {
-    if (observer) return;
-    var grid = document.querySelector(".grid");
-    if (!grid) return;
-    observer = new MutationObserver(function (muts) {
-      for (var i = 0; i < muts.length; i++) {
-        var t = muts[i].target;
-        if (t.classList && t.classList.contains("cell") && t.classList.contains("valid")) {
-          shout(t);
-          return;
-        }
-      }
-    });
-    observer.observe(grid, { subtree: true, attributes: true, attributeFilter: ["class"] });
-  }
-
-  function unmountSfx() {
-    if (observer) { observer.disconnect(); observer = null; }
-  }
+  };
 
   /* ── Selector de skin en el menú (inyectado, no toca index.html) ───────── */
   var NAMES = { "default": "Clásico", "manga": "Manga" };

@@ -1357,7 +1357,8 @@ body {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: clamp(3.5rem, 20vw, 6rem);
-  line-height: 0.9;
+  line-height: 1.12; /* holgura para que no se corten los descendentes (y, p) */
+  padding-bottom: 0.14em;
   letter-spacing: 0.02em;
   color: transparent;
   background-image: radial-gradient(circle, rgba(2, 12, 7, 0.75) 0.9px, transparent 1.5px),
@@ -1749,3 +1750,5 @@ body {
 }
 .mp-chip.me b { color: var(--accent); }
 .rec-row.me { background: rgba(47, 168, 87, 0.12); border-radius: 6px; }
+
+.mp-host { color: var(--accent, #2fa857); font-weight: 900; }

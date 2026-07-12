@@ -233,29 +233,46 @@
   box-shadow: 4px 4px 0 var(--ink);
 }
 
-/* ── El SFX del acierto: se inyecta desde game.js con .typo-sfx ── */
+/* ── Celebración por palabra (window.TypoCelebrate) con .typo-sfx ──
+   Base = estilo default (verde del juego). Manga la re-tinta con color. */
 .typo-sfx {
   position: fixed;
   z-index: 999;
   pointer-events: none;
-  font-family: "Dela Gothic One", sans-serif;
-  color: #fff;
-  -webkit-text-stroke: 4px var(--ink, #14141a);
-  paint-order: stroke fill;
-  text-shadow: 7px 7px 0 var(--ink, #14141a);
+  font-family: var(--font-display, "Archivo", sans-serif);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: var(--accent, #2fa857);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent, #2fa857), transparent 38%),
+    0 2px 6px rgba(0, 0, 0, 0.45);
   opacity: 0;
   white-space: nowrap;
   transform-origin: center;
 }
 @keyframes typoSfx {
-  0%   { opacity: 0; transform: scale(0.3) rotate(-14deg); }
-  18%  { opacity: 1; transform: scale(1.22) rotate(-7deg); }
-  30%  { transform: scale(0.97) rotate(-8deg); }
-  40%  { transform: scale(1.04) rotate(-7deg); }
-  72%  { opacity: 1; transform: scale(1) rotate(-7deg); }
-  100% { opacity: 0; transform: scale(1.14) rotate(-6deg) translateY(-18px); }
+  0%   { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+  18%  { opacity: 1; transform: scale(1.22) rotate(-4deg); }
+  30%  { transform: scale(0.97) rotate(-5deg); }
+  40%  { transform: scale(1.04) rotate(-4deg); }
+  72%  { opacity: 1; transform: scale(1) rotate(-4deg); }
+  100% { opacity: 0; transform: scale(1.14) rotate(-3deg) translateY(-22px); }
 }
 .typo-sfx.go { animation: typoSfx 1s cubic-bezier(0.2, 1.6, 0.3, 1) forwards; }
+
+/* Manga: tinta con contorno + guiño de color (transición manga→anime) */
+[data-skin="manga"] .typo-sfx {
+  font-family: "Dela Gothic One", sans-serif;
+  letter-spacing: 0;
+  color: var(--sfx-color, #fff);
+  -webkit-text-stroke: 4px var(--ink, #14141a);
+  paint-order: stroke fill;
+  text-shadow: 7px 7px 0 var(--ink, #14141a);
+}
+[data-skin="manga"] .typo-sfx.epic {
+  -webkit-text-stroke: 5px var(--ink, #14141a);
+  text-shadow: 8px 8px 0 var(--ink, #14141a),
+    0 0 28px var(--sfx-color, #fff);
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MANGA — el resto del chrome (HUD, controles, ticker, modales, portada…).

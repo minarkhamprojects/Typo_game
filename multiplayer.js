@@ -133,11 +133,13 @@
     overlay.hidden = false;
     resultsOv.hidden = true;
     codeDisplay.textContent = code || "----";
+    var skin = document.documentElement.getAttribute("data-skin") || "default";
+    var hostIcon = skin === "manga" ? "★ " : "◆ "; // anfitrión, según el estilo del juego
     playersEl.innerHTML = players
       .map((p) => {
         const you = p.id === youId ? ' <span class="mp-you">(tú)</span>' : "";
-        const crown = p.id === hostId ? "👑 " : "";
-        return "<li>" + crown + escapeHtml(p.nick) + you + "</li>";
+        const host = p.id === hostId ? '<span class="mp-host">' + hostIcon + "</span>" : "";
+        return "<li>" + host + escapeHtml(p.nick) + you + "</li>";
       })
       .join("");
     startBtn.hidden = !isHost || players.length < 2;

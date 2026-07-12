@@ -327,6 +327,7 @@
   }
 
   function playSuccess() {
+    if (isManga()) return playSuccessManga();
     // acierto = "power-up" electrónico: tríada ascendente (C6·E6·G6) + brillo
     blip(0.0,  1047, 0.11, "square",   0.16); // C6
     blip(0.06, 1319, 0.11, "square",   0.15); // E6
@@ -355,6 +356,7 @@
   }
 
   function playFail() {
+    if (isManga()) return playFailManga();
     // buzzer retro descendente de dos tonos
     if (!audioCtx || muted) return;
     if (audioCtx.state === "suspended") audioCtx.resume();
@@ -371,6 +373,37 @@
 
   function playWarnTick() {
     tone(880, 0, 0.06, "square", 0.14);
+  }
+
+  function isManga() {
+    return document.documentElement.getAttribute("data-skin") === "manga";
+  }
+  // Acierto estilo anime: golpe de impacto + destello "kirakira" ascendente.
+  function playSuccessManga() {
+    tone(170, 0, 0.14, "sine", 0.3);        // golpe grave (DON)
+    blip(0.05, 1568, 0.09, "sine", 0.1);
+    blip(0.11, 2093, 0.09, "sine", 0.1);
+    blip(0.17, 2637, 0.12, "sine", 0.11);
+    blip(0.21, 3520, 0.14, "sine", 0.08);   // chispa
+  }
+  // Error estilo anime: "chiin" cómico descendente.
+  function playFailManga() {
+    tone(660, 0, 0.12, "triangle", 0.14);
+    tone(440, 0.1, 0.16, "triangle", 0.13);
+    tone(294, 0.22, 0.3, "sine", 0.13);
+  }
+  // Sonido final cuando se acaba el tiempo (suena junto con ir a resultados).
+  function playTimeUp() {
+    if (isManga()) {
+      tone(120, 0, 0.6, "sine", 0.3);       // gong grave
+      tone(181, 0, 0.6, "triangle", 0.15);
+      blip(0.02, 90, 0.7, "sine", 0.2);
+    } else {
+      blip(0.0, 784, 0.14, "square", 0.16);
+      blip(0.12, 587, 0.16, "square", 0.16);
+      blip(0.26, 392, 0.5, "triangle", 0.2);
+      tone(120, 0.26, 0.55, "sine", 0.18);
+    }
   }
 
   function updateMuteBtn() {
@@ -746,14 +779,15 @@
   function submitPath() {
     if (path.length >= TypoEngine.MIN_WORD_LEN) {
       const word = TypoEngine.wordFromPath(grid, path);
-      if (gameMode === "trivia") {
-        submitTrivia(word);
+      // El duelo en vivo manda sobre el modo guardado (trivia/clásico) del jugador.
+      if (onlineSession && !onlineSession.ended) {
+        submitOnline(word);
         path = [];
         renderPath();
         return;
       }
-      if (onlineSession && !onlineSession.ended) {
-        submitOnline(word);
+      if (gameMode === "trivia") {
+        submitTrivia(word);
         path = [];
         renderPath();
         return;
@@ -780,6 +814,7 @@
         }
         // "+N" flotante con el puntaje ganado (sube hacia el jugador).
         showScorePop(pts);
+        if (window.TypoCelebrate) window.TypoCelebrate(word); // grito de celebración (según skin/longitud)
         // Contrarreloj: +1 s por palabra; +2 s si tiene más de 5 letras.
         if (gameMode === "contrarreloj") {
           const add = word.length > 5 ? 2 : 1;
@@ -1058,6 +1093,7 @@
       playSuccess();
       flashResult(path, "valid");
       showScorePop(pts);
+      if (window.TypoCelebrate) window.TypoCelebrate(word);
       renderFoundList();
       renderTriviaBanner();
       updateStats();
@@ -1165,6 +1201,7 @@
   }
 
   function endGame() {
+    playTimeUp(); // sonido final, al mismo tiempo que la transición a resultados
     state = "ended";
     gridWrapEl.classList.add("blurred");
     clearInterval(timerHandle);
@@ -1479,6 +1516,7 @@
     vibrate([35, 25, 35, 25, 75]);
     playSuccess();
     flashResult(path, "valid");
+    if (window.TypoCelebrate) window.TypoCelebrate(word);
     if (onlineSession.onWord) onlineSession.onWord(word);
   }
 
@@ -1534,6 +1572,7 @@
     // Termina el duelo (el servidor mandó 'end'): congela el tablero.
     finish() {
       if (!onlineSession) return;
+      playTimeUp();
       onlineSession.ended = true;
       state = "ended";
       stopOnlineClock();
