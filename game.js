@@ -40,6 +40,8 @@
   let timerHandle = null;
   let possibleCount = 0; // palabras posibles en el tablero actual
   let longestRecordThisGame = false; // ¿la palabra más larga récord cayó hoy?
+  let onlineSession = null; // sesión de duelo en vivo (multijugador) o null
+  let onlineClockHandle = null;
 
   // ——— Rango de diseño del tablero ———
   // Ajusta estos números para hacer las partidas más entretenidas: más palabras
@@ -750,6 +752,12 @@
         renderPath();
         return;
       }
+      if (onlineSession && !onlineSession.ended) {
+        submitOnline(word);
+        path = [];
+        renderPath();
+        return;
+      }
       const validWord = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
       if (validWord && !foundWords.has(word)) {
         const isSecret = secretWords.has(word);
@@ -1450,6 +1458,95 @@
   updateMuteBtn();
   renderTicker();
   newBoard();
+
+  // ——— Multijugador en vivo (duelo): lógica y API usada por multiplayer.js ———
+  function submitOnline(word) {
+    const ok = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
+    if (!ok) {
+      playFail();
+      flashResult(path, "invalid");
+      currentWordEl.classList.add("invalid");
+      setTimeout(() => currentWordEl.classList.remove("invalid"), 420);
+      return;
+    }
+    if (foundWords.has(word)) {
+      playDup();
+      flashResult(path, "dup");
+      flashFoundChip(word);
+      return;
+    }
+    // válida localmente: feedback optimista + enviar al servidor (él confirma puntaje/tiempo)
+    vibrate([35, 25, 35, 25, 75]);
+    playSuccess();
+    flashResult(path, "valid");
+    if (onlineSession.onWord) onlineSession.onWord(word);
+  }
+
+  function startOnlineClock() {
+    stopOnlineClock();
+    onlineClockHandle = setInterval(() => {
+      if (!onlineSession) return stopOnlineClock();
+      const left = Math.max(0, Math.round((onlineSession.deadline - Date.now()) / 1000));
+      timerEl.textContent = formatTime(left);
+      timerEl.classList.toggle("warning", left <= WARN_SECONDS && left > 0);
+    }, 250);
+  }
+  function stopOnlineClock() {
+    if (onlineClockHandle) { clearInterval(onlineClockHandle); onlineClockHandle = null; }
+  }
+  function renderOnlineStats() {
+    let s = 0; for (const v of foundWords.values()) s += v;
+    scoreEl.textContent = String(s);
+    wordCountEl.textContent = String(foundWords.size);
+  }
+
+  // API pública para el cliente de multijugador (multiplayer.js)
+  window.TypoOnline = {
+    // Empieza un duelo: pinta el tablero del servidor y arranca el reloj compartido.
+    begin(serverGrid, deadline, onWord) {
+      if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+      onlineSession = { deadline, onWord, ended: false };
+      grid = serverGrid;
+      foundWords = new Map();
+      secretWords = new Set();
+      boostedLetter = ""; boostMult = 1;
+      possibleCount = 0;
+      path = [];
+      state = "playing";
+      newBoardBtn.hidden = true;
+      if (themeBanner) themeBanner.hidden = true;
+      gridWrapEl.classList.remove("blurred");
+      renderGrid();
+      renderPath();
+      renderFoundList();
+      renderOnlineStats();
+      startOnlineClock();
+    },
+    setDeadline(dl) { if (onlineSession) onlineSession.deadline = dl; },
+    // El servidor confirmó una palabra: suma puntaje y muestra +N (+Ns si dio tiempo).
+    wordConfirmed(word, pts, gainedTime) {
+      if (!onlineSession) return;
+      if (!foundWords.has(word)) { foundWords.set(word, pts); renderFoundList(); renderOnlineStats(); }
+      showScorePop(pts);
+      if (gainedTime) showTimeGain(gainedTime);
+    },
+    myScore() { let s = 0; for (const v of foundWords.values()) s += v; return s; },
+    // Termina el duelo (el servidor mandó 'end'): congela el tablero.
+    finish() {
+      if (!onlineSession) return;
+      onlineSession.ended = true;
+      state = "ended";
+      stopOnlineClock();
+      gridWrapEl.classList.add("blurred");
+    },
+    // Sale del modo online y vuelve al estado normal (idle con tablero nuevo).
+    quit() {
+      onlineSession = null;
+      stopOnlineClock();
+      newBoard();
+    },
+    formatTime,
+  };
 
   // ——— Portada / splash: título + carga + botón Comenzar ———
   const splashEl = document.getElementById("splash");

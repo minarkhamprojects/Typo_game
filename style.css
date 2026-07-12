@@ -1602,3 +1602,99 @@ body {
 .handicap-line b { color: var(--text); }
 .handicap-line .net-pos { color: var(--accent); }
 .handicap-line .net-neg { color: var(--error); }
+
+/* ——— Multijugador en vivo ——— */
+.mp-open-btn {
+  margin: 0 auto 0.6rem;
+  display: block;
+  border-color: color-mix(in srgb, var(--accent), transparent 45%);
+  color: var(--accent);
+  font-weight: 800;
+}
+.mp-modal { text-align: center; }
+.mp-title { margin-bottom: 0.8rem; }
+.mp-label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: left;
+  margin: 0.2rem 0 0.25rem;
+}
+.mp-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 200, 150, 0.28);
+  background: rgba(10, 20, 15, 0.7);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+}
+.mp-input:focus { outline: none; border-color: var(--accent); }
+.mp-or { font-size: 0.72rem; color: var(--text-muted); margin: 0.5rem 0; }
+.mp-join-row { display: flex; gap: 0.5rem; }
+.mp-join-row .mp-input { margin-bottom: 0; }
+.mp-code-in { text-align: center; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 800; }
+.mp-code-box {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.mp-code-box b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  letter-spacing: 0.35em;
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent), transparent 55%);
+  margin-top: 0.15rem;
+}
+.mp-hint { font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+.mp-players {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.mp-players li {
+  background: rgba(20, 40, 30, 0.5);
+  border: 1px solid rgba(120, 200, 150, 0.2);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  font-weight: 700;
+}
+.mp-you { color: var(--accent); font-size: 0.8rem; }
+.mp-wait { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+.mp-error { color: var(--error); font-size: 0.82rem; margin: 0.4rem 0; }
+
+/* Marcador en vivo durante el duelo */
+.mp-scorebar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.mp-chip {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(20, 40, 30, 0.6);
+  border: 1px solid rgba(120, 200, 150, 0.25);
+  color: var(--text-muted);
+}
+.mp-chip b { color: var(--text); }
+.mp-chip.me {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent), transparent 72%);
+}
+.mp-chip.me b { color: var(--accent); }
+.rec-row.me { background: rgba(47, 168, 87, 0.12); border-radius: 6px; }

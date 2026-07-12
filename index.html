@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css?v=contra4" />
+<link rel="stylesheet" href="style.css?v=mp1" />
 </head>
 <body>
   <div class="pcb-scene" aria-hidden="true"><canvas id="pcb-fx"></canvas></div>
@@ -63,6 +63,7 @@
         <span class="theme-name" id="theme-name"></span>
         <span class="theme-secret"><span id="banner-label">Secretas</span> <b id="secret-count">0/5</b></span>
       </div>
+      <div class="mp-scorebar" id="mp-scorebar" hidden></div>
       <div class="current-word" id="current-word">&nbsp;</div>
       <div class="grid-wrap" id="grid-wrap">
         <div class="grid" id="grid" aria-label="Tablero de letras"></div>
@@ -115,6 +116,42 @@
     </div>
   </div>
 
+  <!-- Multijugador: lobby (crear/unirse por código) -->
+  <div class="modal-overlay" id="mp-overlay" hidden>
+    <div class="modal mp-modal">
+      <h2 class="mp-title">⚔ Multijugador</h2>
+      <div id="mp-home">
+        <label class="mp-label" for="mp-nick">Tu nombre</label>
+        <input id="mp-nick" class="mp-input" maxlength="16" placeholder="Tú" autocomplete="off" />
+        <button id="mp-create" class="btn btn-primary wide">Crear sala</button>
+        <div class="mp-or">— o únete con un código —</div>
+        <div class="mp-join-row">
+          <input id="mp-code" class="mp-input mp-code-in" maxlength="4" placeholder="CÓDIGO" autocomplete="off" autocapitalize="characters" />
+          <button id="mp-join" class="btn">Unirse</button>
+        </div>
+      </div>
+      <div id="mp-lobby" hidden>
+        <div class="mp-code-box">Código de sala<br><b id="mp-code-display">----</b></div>
+        <p class="mp-hint">Comparte el código. Cuando estén todos, el anfitrión inicia.</p>
+        <ul class="mp-players" id="mp-players"></ul>
+        <button id="mp-start" class="btn btn-primary wide" hidden>Comenzar duelo</button>
+        <div class="mp-wait" id="mp-wait" hidden>Esperando al anfitrión…</div>
+      </div>
+      <p class="mp-error" id="mp-error" hidden></p>
+      <button id="mp-close" class="btn wide">Salir</button>
+    </div>
+  </div>
+
+  <!-- Multijugador: resultados del duelo -->
+  <div class="modal-overlay" id="mp-results" hidden>
+    <div class="modal">
+      <h2 id="mp-winner">…</h2>
+      <div class="records" id="mp-results-list"></div>
+      <button id="mp-again" class="btn btn-primary wide">Volver al lobby</button>
+      <button id="mp-exit" class="btn wide">Salir</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="help-overlay" hidden>
     <div class="modal">
       <h3 class="mode-title">Modo de juego</h3>
@@ -132,6 +169,8 @@
           <span class="mode-desc">Cada palabra suma tiempo</span>
         </button>
       </div>
+      <button id="mp-open" class="btn mp-open-btn wide" type="button">⚔ Multijugador en vivo</button>
+
       <h3 class="records-title">Tus récords · <span id="menu-mode-name">Clásico</span></h3>
       <div class="records" id="menu-records"></div>
 
@@ -242,9 +281,10 @@
 
   <script src="pcbfx.js"></script>
   <script src="themes.js"></script>
-  <script src="trivia.js?v=contra4"></script>
+  <script src="trivia.js?v=mp1"></script>
   <script src="words_es.js"></script>
-  <script src="engine.js?v=contra4"></script>
-  <script src="game.js?v=contra4"></script>
+  <script src="engine.js?v=mp1"></script>
+  <script src="game.js?v=mp1"></script>
+  <script src="multiplayer.js?v=mp1"></script>
 </body>
 </html>
