@@ -108,11 +108,26 @@
       case "word_ok":
         if (window.TypoOnline) window.TypoOnline.wordConfirmed(m.word, m.pts, m.gainedTime);
         break;
+      case "restore":
+        // Reconexión en pleno juego: el server re-manda mis palabras validadas
+        if (window.TypoOnline) window.TypoOnline.restore(m.found);
+        break;
       case "end":
         endDuel(m.results, m.winner);
         break;
       case "error":
-        showErr(m.msg);
+        // Si estaba en pleno duelo (p.ej. el server se reinició y la sala ya no
+        // existe), salir limpio en vez de quedar congelado en 0:00.
+        if (!scorebar.hidden) {
+          scorebar.hidden = true;
+          lastRoom = null;
+          if (window.TypoOnline) window.TypoOnline.abort("Se perdió la sala (" + m.msg + "). Vuelve a crear el duelo.");
+          winnerEl.textContent = "Se perdió la conexión con la sala";
+          resultsList.innerHTML = '<div class="rec-row"><span class="rec-label">' + escapeHtml(m.msg) + "</span></div>";
+          resultsOv.hidden = false;
+        } else {
+          showErr(m.msg);
+        }
         break;
     }
   }

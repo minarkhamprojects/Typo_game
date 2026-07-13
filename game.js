@@ -1172,6 +1172,7 @@
 
   function startGame() {
     if (!dictReady) return; // el diccionario aún no carga; el splash no debería dejar llegar aquí
+    if (onlineSession && !onlineSession.ended) return; // en pleno duelo no se arranca juego local
     initAudio();
     if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } // evita intervalos huérfanos
     state = "playing";
@@ -1363,6 +1364,11 @@
   }
 
   function newBoard() {
+    if (!dictReady) {
+      // El diccionario sigue bajando; bootDictionary() llamará newBoard() al terminar.
+      if (hintEl) hintEl.textContent = "Cargando diccionario...";
+      return;
+    }
     if (hintEl) hintEl.textContent = "Generando tablero...";
     startBtn.disabled = true;
     newBoardBtn.disabled = true;
@@ -1404,7 +1410,10 @@
       .then(function (txt) {
         dictionary = TypoEngine.makeDictionary(txt);
         dictReady = true;
-        newBoard();                       // primer tablero (necesita el diccionario)
+        // OJO: si hay un duelo en vivo activo (entró por link y el diccionario
+        // tardó más que el 'start' del host), NO generar tablero local: pisaría
+        // el tablero del servidor y el rival jugaría en un mapa distinto.
+        if (!onlineSession) newBoard();   // primer tablero (necesita el diccionario)
         if (revealSplashStart) revealSplashStart();
       })
       .catch(function () {
@@ -1536,7 +1545,9 @@
 
   // ——— Multijugador en vivo (duelo): lógica y API usada por multiplayer.js ———
   function submitOnline(word) {
-    const ok = dictionary.has(word) && TypoEngine.isValidPath(grid, path);
+    // Si el diccionario aún no baja (entró por link con datos lentos), no se
+    // valida localmente: el servidor es la autoridad y confirmará con word_ok.
+    const ok = (!dictionary || dictionary.has(word)) && TypoEngine.isValidPath(grid, path);
     if (!ok) {
       playFail();
       flashResult(path, "invalid");
@@ -1580,6 +1591,15 @@
   window.TypoOnline = {
     // Empieza un duelo: pinta el tablero del servidor y arranca el reloj compartido.
     begin(serverGrid, deadline, onWord) {
+      // Reconexión al MISMO duelo (el server re-manda el tablero): no borrar el
+      // progreso local, solo actualizar reloj y callback.
+      if (onlineSession && !onlineSession.ended && grid.length &&
+          JSON.stringify(grid) === JSON.stringify(serverGrid)) {
+        onlineSession.deadline = deadline;
+        onlineSession.onWord = onWord;
+        startOnlineClock();
+        return;
+      }
       if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
       onlineSession = { deadline, onWord, ended: false };
       grid = serverGrid;
@@ -1607,6 +1627,22 @@
       if (gainedTime) showTimeGain(gainedTime);
     },
     myScore() { let s = 0; for (const v of foundWords.values()) s += v; return s; },
+    // Reconexión: el server re-manda mis palabras ya validadas; se restaura la lista.
+    restore(words) {
+      if (!onlineSession || !Array.isArray(words)) return;
+      for (const w of words) {
+        if (!foundWords.has(w)) foundWords.set(w, TypoEngine.scoreForWord(w));
+      }
+      renderFoundList();
+      renderOnlineStats();
+    },
+    // La sala murió (p.ej. el server se reinició): salir del duelo sin congelarse.
+    abort(msg) {
+      onlineSession = null;
+      stopOnlineClock();
+      if (hintEl && msg) hintEl.textContent = msg;
+      newBoard();
+    },
     // Termina el duelo (el servidor mandó 'end'): congela el tablero.
     finish() {
       if (!onlineSession) return;
