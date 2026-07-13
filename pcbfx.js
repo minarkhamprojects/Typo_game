@@ -8,6 +8,13 @@
   var ctx = canvas.getContext("2d");
   if (!ctx) return;
 
+  // Equipo débil (data-perf=low): el canvas animado es lo más caro del runtime.
+  // No lo arrancamos siquiera — el fondo estático se ve igual de bien.
+  if (document.documentElement.getAttribute("data-perf") === "low") {
+    canvas.style.display = "none";
+    return;
+  }
+
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   // Equipos modestos (muchos Android): menos partículas para no tanquear el fps.
   var lowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 6) ||

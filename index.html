@@ -5,6 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Typo — Buscapalabras</title>
 
+<!-- Detección de equipo débil vs fuerte (corre antes de pintar, sin parpadeo).
+     Señales: RAM (deviceMemory) y núcleos de CPU (hardwareConcurrency).
+     En 'low' el CSS/JS apaga canvas animado, blur y filtros SVG.
+     Override manual: ?perf=low | ?perf=high  ·  localStorage typo-perf. -->
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search).get("perf");
+    var forced = q || localStorage.getItem("typo-perf");
+    var perf;
+    if (forced === "low" || forced === "high") {
+      perf = forced;
+    } else {
+      var mem = navigator.deviceMemory || 0;       // GB (Chrome/Android); iOS no lo expone
+      var cores = navigator.hardwareConcurrency || 0;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var weak = (mem && mem <= 4) || (cores && cores <= 4) || (!mem && !cores) || reduce;
+      perf = weak ? "low" : "high";
+    }
+    document.documentElement.setAttribute("data-perf", perf);
+    window.TYPO_PERF = perf;
+    window.TYPO_LOWEND = perf === "low";
+  })();
+</script>
+
 <!-- PWA: instalable como app con icono en el celular -->
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#06100c" />
@@ -18,7 +42,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@600;700;800;900&family=VT323&family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css?v=mp3" />
+<link rel="stylesheet" href="style.css?v=mp4" />
 <link rel="stylesheet" href="skins.css?v=10" />
 </head>
 <body>
@@ -288,13 +312,12 @@
     </div>
   </div>
 
-  <script src="pcbfx.js"></script>
+  <script src="pcbfx.js?v=perf"></script>
   <script src="themes.js"></script>
   <script src="trivia.js?v=mp2"></script>
-  <script src="words_es.js"></script>
   <script src="engine.js?v=mp2"></script>
   <script src="skins.js?v=2"></script>
-  <script src="game.js?v=mp3"></script>
+  <script src="game.js?v=mp4"></script>
   <script src="multiplayer.js?v=mp2"></script>
 </body>
 </html>

@@ -202,7 +202,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: url("pcb-bg.png") center center / cover no-repeat;
+  background: url("pcb-bg.webp") center center / cover no-repeat;
   /* iluminar los chips */
   filter: brightness(1.28) contrast(1.05) saturate(1.06);
 }
@@ -1288,7 +1288,7 @@ body {
   padding: 2rem;
   /* fondo propio de microchips (opaco) para una portada limpia */
   background: radial-gradient(120% 90% at 50% 38%, rgba(5, 14, 10, 0.62), rgba(3, 8, 6, 0.9)),
-    url("pcb-bg.png") center center / cover no-repeat;
+    url("pcb-bg.webp") center center / cover no-repeat;
   transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
@@ -1752,3 +1752,27 @@ body {
 .rec-row.me { background: rgba(47, 168, 87, 0.12); border-radius: 6px; }
 
 .mp-host { color: var(--accent, #2fa857); font-weight: 900; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODO BAJO RENDIMIENTO — data-perf="low" (detectado en index.html por RAM/CPU)
+   En equipos débiles se apagan los efectos que tanquean el fps: el canvas animado
+   ya no arranca (pcbfx.js), y aquí quitamos blur, backdrop-filter y el filtro SVG
+   del tablero. El look base se conserva. La especificidad :root[data-perf] gana
+   sobre las skins, así que aplica también en manga.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root[data-perf="low"] {
+  --plate-blur: none;    /* backdrop-filter del tablero */
+  --plate-filter: none;  /* filtro SVG url(#typo-ink) del skin manga (feDisplacement) */
+}
+[data-perf="low"] .modal-overlay {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-perf="low"] .grid-wrap.blurred .grid {
+  filter: none;    /* blur(10px) es de lo más caro en GPU débil */
+  opacity: 0.45;   /* conserva el estado "en reposo" sin desenfoque */
+}
+[data-perf="low"] .splash-ghost {
+  filter: none;
+  animation: none; /* el parpadeo infinito gasta ciclos sin aportar */
+}

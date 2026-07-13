@@ -28,7 +28,11 @@
   const missedListEl = document.getElementById("missed-list");
   const playAgainBtn = document.getElementById("play-again-btn");
 
-  const dictionary = TypoEngine.makeDictionary(WORDS_ES_RAW);
+  // El diccionario (6.75 MB) se carga async como texto plano (words_es.txt) para
+  // no congelar la apertura en equipos modestos. Se puebla en bootDictionary().
+  let dictionary = null;
+  let dictReady = false;
+  let revealSplashStart = null; // lo define la sección de splash; lo dispara el dict-ready
 
   let grid = [];
   let solved = new Map();
@@ -1167,6 +1171,7 @@
   // ————————————————————————————————————————
 
   function startGame() {
+    if (!dictReady) return; // el diccionario aún no carga; el splash no debería dejar llegar aquí
     initAudio();
     if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } // evita intervalos huérfanos
     state = "playing";
@@ -1388,6 +1393,25 @@
     }, 10);
   }
 
+  // Carga async del diccionario: baja words_es.txt, construye el índice y recién
+  // entonces genera el primer tablero y habilita "Comenzar" en el splash.
+  function bootDictionary() {
+    fetch("words_es.txt")
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
+      })
+      .then(function (txt) {
+        dictionary = TypoEngine.makeDictionary(txt);
+        dictReady = true;
+        newBoard();                       // primer tablero (necesita el diccionario)
+        if (revealSplashStart) revealSplashStart();
+      })
+      .catch(function () {
+        if (hintEl) hintEl.textContent = "No se pudo cargar el diccionario. Revisa tu conexión y recarga.";
+      });
+  }
+
   gridEl.addEventListener("pointerdown", onPointerDown);
   window.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp);
@@ -1508,7 +1532,7 @@
 
   updateMuteBtn();
   renderTicker();
-  newBoard();
+  bootDictionary(); // carga el diccionario async; genera el primer tablero al terminar
 
   // ——— Multijugador en vivo (duelo): lógica y API usada por multiplayer.js ———
   function submitOnline(word) {
@@ -1616,10 +1640,17 @@
   }
 
   if (splashEl && splashStart) {
-    setTimeout(() => {
-      if (splashLoader) splashLoader.hidden = true;
-      splashStart.hidden = false;
-    }, 1300);
+    // "Comenzar" se revela solo cuando el diccionario terminó de cargar, con un
+    // mínimo de 1300 ms para que se alcance a ver la animación de carga.
+    const splashShownAt = Date.now();
+    revealSplashStart = function () {
+      const wait = Math.max(0, 1300 - (Date.now() - splashShownAt));
+      setTimeout(() => {
+        if (splashLoader) splashLoader.hidden = true;
+        splashStart.hidden = false;
+      }, wait);
+    };
+    if (dictReady) revealSplashStart(); // por si el diccionario ganó la carrera
     splashStart.addEventListener("click", () => {
       initAudio(); // el gesto del usuario desbloquea el audio
       vibrate([40, 30, 60]); // "arma" el háptico dentro del gesto + feedback
