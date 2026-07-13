@@ -1369,6 +1369,10 @@
       if (hintEl) hintEl.textContent = "Cargando diccionario...";
       return;
     }
+    // Cinturón: nunca dejar relojes vivos de una partida anterior (un tick huérfano
+    // hace parpadear el timer y puede rematar la partida con la lista ya borrada).
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+    stopOnlineClock();
     if (hintEl) hintEl.textContent = "Generando tablero...";
     startBtn.disabled = true;
     newBoardBtn.disabled = true;
