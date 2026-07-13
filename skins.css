@@ -257,26 +257,19 @@
 }
 .typo-sfx.go { animation: typoSfx 1s cubic-bezier(0.2, 1.6, 0.3, 1) forwards; }
 
-/* Manga: relleno de screentone (puntitos negros) sobre el color + contorno tinta */
+/* Manga: onomatopeya de color SÓLIDO (como en manga real) + contorno de tinta
+   fino + sombra chica. Sin relleno de trama: la trama rompía y desfasaba la letra. */
 [data-skin="manga"] .typo-sfx {
   font-family: "Dela Gothic One", sans-serif;
   letter-spacing: 0;
-  color: transparent;
-  background-image:
-    radial-gradient(circle at center, rgba(40, 40, 48, 0.34) 0.42px, transparent 0.82px),
-    linear-gradient(var(--sfx-color, #fff), var(--sfx-color, #fff));
-  background-size: 2px 2px, 100% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 4px var(--ink, #14141a);
+  color: var(--sfx-color, #fff);
+  -webkit-text-stroke: 1.8px var(--ink, #14141a);
   paint-order: stroke fill;
-  text-shadow: 7px 7px 0 var(--ink, #14141a);
+  text-shadow: 2px 2px 0 var(--ink, #14141a);
 }
 [data-skin="manga"] .typo-sfx.epic {
-  background-size: 2.3px 2.3px, 100% 100%;
-  -webkit-text-stroke: 5px var(--ink, #14141a);
-  text-shadow: 8px 8px 0 var(--ink, #14141a), 0 0 26px var(--sfx-color, #fff);
+  -webkit-text-stroke: 2.4px var(--ink, #14141a);
+  text-shadow: 2.5px 2.5px 0 var(--ink, #14141a), 0 0 20px var(--sfx-color, #fff);
 }
 /* el "+N" del puntaje sí lleva color en manga (rojo cómic con contorno de tinta) */
 [data-skin="manga"] .score-pop {
