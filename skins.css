@@ -260,7 +260,8 @@
 /* Manga: la letra es de color SÓLIDO (legible) y el granulado va como capa
    ENCIMA, recortada a la palabra, a media opacidad (el color se ve a través). */
 [data-skin="manga"] .typo-sfx {
-  position: relative;
+  /* NO tocar position: el juego lo posiciona con fixed; el ::after usa
+     absolute+inset:0 y funciona igual sobre un padding fijo. */
   font-family: "Dela Gothic One", sans-serif;
   letter-spacing: 0;
   text-align: center;
