@@ -263,9 +263,9 @@
   letter-spacing: 0;
   color: transparent;
   background-image:
-    radial-gradient(circle at center, rgba(18, 18, 24, 0.8) 0.5px, transparent 0.95px),
+    radial-gradient(circle at center, rgba(40, 40, 48, 0.34) 0.42px, transparent 0.82px),
     linear-gradient(var(--sfx-color, #fff), var(--sfx-color, #fff));
-  background-size: 2.6px 2.6px, 100% 100%;
+  background-size: 2px 2px, 100% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -274,7 +274,7 @@
   text-shadow: 7px 7px 0 var(--ink, #14141a);
 }
 [data-skin="manga"] .typo-sfx.epic {
-  background-size: 3px 3px, 100% 100%;
+  background-size: 2.3px 2.3px, 100% 100%;
   -webkit-text-stroke: 5px var(--ink, #14141a);
   text-shadow: 8px 8px 0 var(--ink, #14141a), 0 0 26px var(--sfx-color, #fff);
 }
