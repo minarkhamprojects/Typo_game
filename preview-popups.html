@@ -8,10 +8,11 @@
 <link rel="stylesheet" href="skins.css" />
 <style>
   html, body { margin: 0; }
-  body {
-    min-height: 100vh;
-    background: #e7e0d0 url("manga-bg.jpg") center center / cover no-repeat fixed;
-    font-family: "Archivo", sans-serif;
+  body { min-height: 100vh; background: #e7e0d0; font-family: "Archivo", sans-serif; }
+  /* fondo fijo tipo .pcb-scene (robusto en móvil, sin background-attachment:fixed) */
+  .scene {
+    position: fixed; inset: 0; z-index: -1;
+    background: #e7e0d0 url("manga-bg.jpg") center center / cover no-repeat;
   }
   .head {
     text-align: center;
@@ -51,6 +52,7 @@
 </style>
 </head>
 <body>
+  <div class="scene" aria-hidden="true"></div>
   <div class="head">Popups manga — vista previa<small>Toca "Ver en movimiento" para el efecto de salto</small></div>
   <div class="wrap" id="wrap"></div>
   <button class="replay" id="replay">▶ Ver en movimiento</button>
