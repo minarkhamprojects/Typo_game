@@ -36,8 +36,8 @@
       big:    ["¡BRUTAL!", "¡INCREÍBLE!", "¡MAESTRO!", "¡IMPARABLE!", "¡ESPECTACULAR!", "¡LEYENDA!"]
     },
     "manga": {
-      mild:   ["¡DON!", "¡ZUN!", "¡BAN!"],
-      medium: ["¡GOU!", "¡DOGA!", "¡ZUSHI!", "¡BOOM!", "¡GASHIN!"],
+      mild:   ["¡DON!", "¡ZUN!", "¡BAN!", "¡PAN!"],
+      medium: ["¡DOGO!", "¡GOOO!", "¡DOKAN!", "¡GASHIN!", "¡ZUSHIN!"],
       big:    ["¡DODON!", "¡GOGOGO!", "¡ZUDAAAN!", "¡BAKUUN!", "¡DOGYAAAN!"]
     }
   };
@@ -67,6 +67,7 @@
     var n = document.createElement("div");
     n.className = "typo-sfx";
     n.textContent = msg;
+    n.setAttribute("data-sfx", msg); // para la capa de granulado (::after)
     n.style.fontSize = size.toFixed(2) + "rem";
     n.style.left = (r.left + r.width * (0.18 + Math.random() * 0.4)) + "px";
     n.style.top = (r.top + r.height * (0.12 + Math.random() * 0.28)) + "px";

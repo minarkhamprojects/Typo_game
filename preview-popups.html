@@ -58,11 +58,11 @@
   <button class="replay" id="replay">▶ Ver en movimiento</button>
   <script>
     var items = [
-      { t: "¡DON!",    s: 2.4, hue: 0 },
-      { t: "¡GENIAL!", s: 2.8, hue: 45 },
-      { t: "¡ZUSHI!",  s: 2.6, hue: 145 },
-      { t: "¡BRUTAL!", s: 3.2, hue: 285, epic: true },
-      { t: "¡BAKUUN!", s: 3.8, hue: 210, epic: true }
+      { t: "¡DON!",     s: 2.4, hue: 0 },
+      { t: "¡DOKAN!",   s: 2.8, hue: 45 },
+      { t: "¡GASHIN!",  s: 2.6, hue: 145 },
+      { t: "¡ZUDAAAN!", s: 3.2, hue: 285, epic: true },
+      { t: "¡BAKUUN!",  s: 3.8, hue: 210, epic: true }
     ];
     var wrap = document.getElementById("wrap");
     function build(anim) {
@@ -71,6 +71,7 @@
         var n = document.createElement("div");
         n.className = "typo-sfx preview" + (it.epic ? " epic" : "");
         n.textContent = it.t;
+        n.setAttribute("data-sfx", it.t);
         n.style.fontSize = it.s + "rem";
         n.style.setProperty("--sfx-color", "hsl(" + it.hue + ", 88%, 55%)");
         wrap.appendChild(n);

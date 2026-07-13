@@ -257,15 +257,32 @@
 }
 .typo-sfx.go { animation: typoSfx 1s cubic-bezier(0.2, 1.6, 0.3, 1) forwards; }
 
-/* Manga: onomatopeya de color SÓLIDO (como en manga real) + contorno de tinta
-   fino + sombra chica. Sin relleno de trama: la trama rompía y desfasaba la letra. */
+/* Manga: la letra es de color SÓLIDO (legible) y el granulado va como capa
+   ENCIMA, recortada a la palabra, a media opacidad (el color se ve a través). */
 [data-skin="manga"] .typo-sfx {
+  position: relative;
   font-family: "Dela Gothic One", sans-serif;
   letter-spacing: 0;
+  text-align: center;
   color: var(--sfx-color, #fff);
   -webkit-text-stroke: 1.8px var(--ink, #14141a);
   paint-order: stroke fill;
   text-shadow: 2px 2px 0 var(--ink, #14141a);
+}
+[data-skin="manga"] .typo-sfx::after {
+  content: attr(data-sfx);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  background-image: radial-gradient(circle at center, var(--ink) 0.55px, transparent 1.05px);
+  background-size: 3px 3px;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.5;
+  pointer-events: none;
 }
 [data-skin="manga"] .typo-sfx.epic {
   -webkit-text-stroke: 2.4px var(--ink, #14141a);
