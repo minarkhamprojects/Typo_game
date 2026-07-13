@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es" data-skin="manga">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Typo — preview popups manga</title>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Archivo:wght@800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="skins.css" />
+<style>
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background: #e7e0d0 url("manga-bg.jpg") center center / cover no-repeat fixed;
+    font-family: "Archivo", sans-serif;
+  }
+  .head {
+    text-align: center;
+    padding: 1.1rem 1rem 0.4rem;
+    font-weight: 900;
+    color: #1b1b22;
+  }
+  .head small { display: block; font-weight: 400; font-size: 0.8rem; margin-top: 0.25rem; }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.6rem;
+    padding: 1.6rem 1rem 6rem;
+  }
+  /* los popups del juego usan position:fixed; aquí los apilamos en columna */
+  .typo-sfx.preview {
+    position: relative;
+    left: auto; top: auto;
+    transform: rotate(-4deg);
+    opacity: 1;
+  }
+  .replay {
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    padding: 0.75rem 1.5rem;
+    font: 900 1rem "Archivo", sans-serif;
+    color: #fff;
+    background: #1b1b22;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.25);
+  }
+</style>
+</head>
+<body>
+  <div class="head">Popups manga — vista previa<small>Toca "Ver en movimiento" para el efecto de salto</small></div>
+  <div class="wrap" id="wrap"></div>
+  <button class="replay" id="replay">▶ Ver en movimiento</button>
+  <script>
+    var items = [
+      { t: "¡DON!",    s: 2.4, hue: 0 },
+      { t: "¡GENIAL!", s: 2.8, hue: 45 },
+      { t: "¡ZUSHI!",  s: 2.6, hue: 145 },
+      { t: "¡BRUTAL!", s: 3.2, hue: 285, epic: true },
+      { t: "¡BAKUUN!", s: 3.8, hue: 210, epic: true }
+    ];
+    var wrap = document.getElementById("wrap");
+    function build(anim) {
+      wrap.innerHTML = "";
+      items.forEach(function (it) {
+        var n = document.createElement("div");
+        n.className = "typo-sfx preview" + (it.epic ? " epic" : "");
+        n.textContent = it.t;
+        n.style.fontSize = it.s + "rem";
+        n.style.setProperty("--sfx-color", "hsl(" + it.hue + ", 88%, 55%)");
+        wrap.appendChild(n);
+        if (anim) { requestAnimationFrame(function () { n.classList.add("go"); }); }
+      });
+    }
+    build(false);
+    document.getElementById("replay").addEventListener("click", function () {
+      build(true);
+      setTimeout(function () { build(false); }, 1300);
+    });
+  </script>
+</body>
+</html>
